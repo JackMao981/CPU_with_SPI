@@ -3,7 +3,8 @@
 `include "regfile.v"
 `include "alu.v"
 `include "memory.v"
-
+`include "fake_spi.v"
+ 
 `timescale 1ns / 1ps
 
 module SINGLE_CYCLE_CPU
