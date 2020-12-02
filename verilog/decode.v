@@ -18,6 +18,7 @@ module DECODE
   // ALU Control
   output reg [`W_FUNCT-1:0]   alu_op,  // ALU OP
   // Muxing
+  output reg [`W_SPI_MODE-1:0] spi_mode,
   output reg [`W_PC_SRC-1:0]  pc_src,  // PC Source
   output reg [`W_MEM_CMD-1:0] mem_cmd, // Mem Command
   output reg [`W_ALU_SRC-1:0] alu_src, // ALU Source
@@ -32,6 +33,7 @@ module DECODE
   assign rd   = inst[`FLD_RD];
   assign imm  = inst[`FLD_IMM];
   assign addr = inst[`FLD_ADDR];
+  assign spi_mode = 2'b00;
 
   always @(inst) begin
     if (`DEBUG_DECODE)
@@ -281,6 +283,30 @@ module DECODE
             imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_WRITE;
             alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_MEM;
             pc_src  = `PC_SRC_REGF;  alu_op  = inst[`FLD_FUNCT];
+          end
+
+        // New Part!
+        `MC0:
+          begin
+            case(inst[`FLD_RS])
+            begin
+              `RS_MFC0:
+              begin
+                wa = rd; ra1 = rs; ra2 = rt; reg_wen = `WDIS;
+                imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
+                alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
+                pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
+                spi_mode = inst[`FLD_SPI_MODE];
+              end
+              `RS_MTC0:
+              begin
+                wa = rd; ra1 = rs; ra2 = rt; reg_wen = `WDIS;
+                imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
+                alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
+                pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
+                spi_mode = inst[`FLD_SPI_MODE];
+              end
+            end
           end
         endcase
       end

@@ -4,7 +4,7 @@
 `include "alu.v"
 `include "memory.v"
 `include "fake_spi.v"
- 
+
 `timescale 1ns / 1ps
 
 module SINGLE_CYCLE_CPU
@@ -35,7 +35,7 @@ module SINGLE_CYCLE_CPU
   reg [`W_JADDR-1:0]   jump_addr;    // Jump Addr Field
   // ALU Control
   reg [`W_FUNCT-1:0]   alu_op;  // ALU OP
-  // Muxing
+  // Muxinginput control_rd,input control_rd,
   reg [`W_PC_SRC-1:0] pc_src;
   reg [`W_EN-1:0] branch_ctrl;
 
@@ -52,6 +52,22 @@ module SINGLE_CYCLE_CPU
 
   reg [`W_CPU-1:0] wd;
   REGFILE regfile(clk, rst, reg_wen, wa, wd, ra1, ra2, rd1, rd2);
+
+
+// input clk,
+// input reg [7:0] data_in,
+// input control_rd,
+// output reg [7:0] data_out,
+// output dv_data_out,
+//
+// input dv_miso,
+// input reg [7:0] data_miso,
+  reg dv_mosi,
+  reg [7:0] data_mosi
+  reg [7:0] spi_out;
+  reg spi_dv;
+  FAKE_SPI_CONTROL fake_spi_control(clk, rd2, inst[12:11], spi_out, spi_dv, 1'b0, 0, dv_mosi, data_mosi);
+
 
   //immediate mux
   reg [`W_CPU-1:0] ALUSrcOut;
@@ -93,23 +109,35 @@ module SINGLE_CYCLE_CPU
     endcase
   end
 
+  reg [`W_CPU-1:0] wd_inter;
+
   always @* begin
     case (reg_src)
       `REG_SRC_ALU :
         begin
-          wd = aluOut;
+          wd_inter = aluOut;
         end
       `REG_SRC_MEM :
         begin
-          wd = dataOut; // from data memory
+          wd_inter = dataOut; // from data memory
         end
       `REG_SRC_PC :
         begin
-          wd = aluOut; // REG_SRC_PC HERE
+          wd_inter = aluOut; // REG_SRC_PC HERE
           // MAYBE branch address????
         end
     endcase
+
+    case(spi_dv) // handles choosing between spi data and cpu data
+      2'b10: // miso case
+      begin
+        wd = spi_out;
+      end
+      default: wd = wd_inter;
+    endcase
   end
+
+
 
   //SYSCALL Catch
   always @(posedge clk) begin
