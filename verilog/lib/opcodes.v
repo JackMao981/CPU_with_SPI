@@ -131,6 +131,9 @@
   // RS Field Codes for M*C0
   `define RS_MFC0   `W_REG'b00000
   `define RS_MTC0   `W_REG'b00100
+  `define SPI_SEND  `W_SPI_MODE'b00
+  `define SPI_RECEIVE `W_SPI_MODE'b10
+
 
   // Op Codes
   // Arithmetic

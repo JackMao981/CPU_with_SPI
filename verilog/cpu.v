@@ -41,9 +41,10 @@ module SINGLE_CYCLE_CPU
 
   reg [`W_ALU_SRC-1:0] alu_src; // ALU Source
   reg [`W_REG_SRC-1:0] reg_src;
+  reg [`W_SPI_MODE-1:0] spi_mode;
   DECODE decode(inst, wa, ra1, ra2,
                 reg_wen, imm_ext, imm,
-                jump_addr, alu_op, pc_src,
+                jump_addr, alu_op, spi_mode, pc_src,
                 mem_cmd, alu_src, reg_src);
 
   reg isZero;
@@ -60,13 +61,13 @@ module SINGLE_CYCLE_CPU
 // output reg [7:0] data_out,
 // output dv_data_out,
 //
-// input dv_miso,
-// input reg [7:0] data_miso,
-  reg dv_mosi,
-  reg [7:0] data_mosi
+  reg dv_miso;
+  reg [7:0] data_miso;
+  reg dv_mosi;
+  reg [7:0] data_mosi;
   reg [7:0] spi_out;
   reg spi_dv;
-  FAKE_SPI_CONTROL fake_spi_control(clk, rd2, inst[12:11], spi_out, spi_dv, 1'b0, 0, dv_mosi, data_mosi);
+  FAKE_SPI_CONTROL fake_spi_control(clk, rd2, spi_mode, spi_out, spi_dv, dv_miso, data_miso, dv_mosi, data_mosi);
 
 
   //immediate mux
