@@ -67,8 +67,14 @@ module SINGLE_CYCLE_CPU
   reg [7:0] data_mosi;
   reg [7:0] spi_out;
   reg spi_dv;
-  FAKE_SPI_CONTROL fake_spi_control(clk, rd2, spi_mode, spi_out, spi_dv, dv_miso, data_miso, dv_mosi, data_mosi);
+  FAKE_SPI_CONTROL fake_spi_control(clk, 8'b00001111, spi_mode, spi_out,
+                                    spi_dv, dv_miso, data_miso,
+                                    dv_mosi, data_mosi);
 
+
+  always @* begin
+    $display ("MODE: %b", spi_mode);
+  end
 
   //immediate mux
   reg [`W_CPU-1:0] ALUSrcOut;
@@ -129,16 +135,15 @@ module SINGLE_CYCLE_CPU
         end
     endcase
 
-    case(spi_dv) // handles choosing between spi data and cpu data
-      2'b10: // miso case
+    case(spi_mode) // handles choosing between spi data and cpu data
+      `SPI_RECEIVE: // miso case
       begin
+      $display("DATA RECEIVED");
         wd = spi_out;
       end
       default: wd = wd_inter;
     endcase
   end
-
-
 
   //SYSCALL Catch
   always @(posedge clk) begin

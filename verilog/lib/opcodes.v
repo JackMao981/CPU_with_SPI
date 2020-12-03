@@ -186,9 +186,10 @@
   `define JAL       `W_OPCODE'b000011
   `define JALR      `W_OPCODE'b000000
   `define JR        `W_OPCODE'b000000
+  `define MC0       `W_OPCODE'b010000
   `define MFC0      `W_OPCODE'b010000
   `define MTC0      `W_OPCODE'b010000
-  `define MC0       `W_OPCODE'b010000
+
 
   // Load Store Instructions
   `define LB        `W_OPCODE'b100000
