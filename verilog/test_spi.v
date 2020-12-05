@@ -30,13 +30,14 @@ module test_spi ();
   always #10 clk = !clk;
 
   //Instantiate your "Device Under Test"
-  FAKE_SPI_CONTROL DUT(clk, 8'b00001111, `SPI_RECEIVE, data_out, dv_data_out, dv_miso, data_miso, dv_miso, data_mosi);
+  FAKE_SPI_CONTROL DUT(clk, 8'b00001111, `SPI_RECEIVE, data_out, dv_data_out,
+                       dv_miso, data_miso, dv_miso, data_mosi);
 
   initial begin
     // Hooks for vvp/gtkwave
-    // thcontrol_rde *.vcd filename should match the *.v filename for Makefile cleanliness
+    // the *.vcd filename should match the *.v filename for Makefile cleanliness
     $dumpfile("test_spi.vcd");
-    $dumpvars(0,test_FA);
+    $dumpvars(0,test_spi);
 
     //Your Code Here!
     $display("dv_miso %b", dv_miso);
