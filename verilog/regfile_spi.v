@@ -7,23 +7,41 @@
 module SPI_REGFILE
  (input                   clk,
   input                   rst,
-  input                   wren,
-  input      [`W_REG-1:0] ra1,
-  output                  dv_spi,
-  output reg              spi_out);
+  // input                   wren,
+  input      [`W_REG-1:0] addr,
+  input      [`W_CPU-1:0] wd,
+  input      [`W_SPI_CTRL-1:0] ctrl,
+  output reg              dv_spi,
+  output reg [`W_CPU-1:0] spi_out);
 
   /** Storage Element **/
   reg [`W_CPU-1:0] rf [31:0];
 
+  reg [1:0] ctrl_state;
   always @(posedge clk,posedge rst) begin
     if (rst) begin
       for(int i = 0; i<32; i=i+1)
         rf[i] = 0;
     end
     else begin
-      if (wren)
-        rf[wa] = wd;
-      if (`DEBUG_REGFILE) begin
+
+      if (ctrl == 1) begin // MOSI
+        ctrl_state = 2'b01;
+        rf[addr] = wd; // writes data from cpu to spi register
+        dv_spi = 1'b0;
+      end
+      else if (ctrl == 2) begin // MISO
+        ctrl_state = 2'b10;
+        spi_out = 22;
+        #6969
+        dv_spi = 1'b1;
+      end
+      else begin // do nothing
+        ctrl_state = 2'b00;
+        dv_spi = 1'b0;
+      end
+
+      if (`DEBUG_REGFILE_SPI) begin
         /* verilator lint_off STMTDLY */
         #2 // Delay slightly to correct print timing issue
         /* verilator lint_on STMTDLY */
@@ -40,7 +58,8 @@ module SPI_REGFILE
 
   end
 
-  assign  rd1 = (ra1 != 0) ? rf[ra1]:0;
-  assign  rd2 = (ra2 != 0) ? rf[ra2]:0;
+  // assign spi_out = (ra != 0) ? rf[ra]:0;
+  // assign  rd1 = (ra1 != 0) ? rf[ra1]:0;
+  // assign  rd2 = (ra2 != 0) ? rf[ra2]:0;
 
 endmodule

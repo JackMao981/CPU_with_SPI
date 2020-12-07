@@ -9,7 +9,7 @@
   `define W_FUNCT    6
   `define W_IMM     16
   `define W_JADDR   26
-  `define W_SPI_MODE 2
+  `define W_SPI_CTRL 2
 
   // Instruction Fields
   `define FLD_OPCODE 31:26
@@ -19,9 +19,8 @@
   `define FLD_IMM    15:0
   `define FLD_ADDR   25:0
   `define FLD_SHAMT  10:6
-  `define FLD_FUNCT  5:0
+  `define FLD_FUNCT   5:0
   `define PC_UPPER   31:28
-  `define FLD_SPI_MODE   12:11
 
   // Mux Control Widths
   `define W_EN         1
@@ -31,6 +30,11 @@
   `define W_REG_SRC    2
   `define W_MEM_CMD    2
   `define W_WORD       2
+
+  // SPI Control Vals
+  `define MISO         `W_SPI_CTRL'b10
+  `define MOSI         `W_SPI_CTRL'b01
+  `define SPI_NOP      `W_SPI_CTRL'b00
 
   // Lots of MUX and Enable Defines
   `define WREN         `W_EN'b1
@@ -51,6 +55,7 @@
   `define REG_SRC_ALU  `W_REG_SRC'd0
   `define REG_SRC_MEM  `W_REG_SRC'd1
   `define REG_SRC_PC   `W_REG_SRC'd2
+  `define REG_SRC_SPI  `W_REG_SRC'd3
 
   `define MEM_NOP      `W_MEM_CMD'd0
   `define MEM_READ     `W_MEM_CMD'd1
@@ -131,9 +136,6 @@
   // RS Field Codes for M*C0
   `define RS_MFC0   `W_REG'b00000
   `define RS_MTC0   `W_REG'b00100
-  `define SPI_SEND  `W_SPI_MODE'b00
-  `define SPI_RECEIVE `W_SPI_MODE'b10
-
 
   // Op Codes
   // Arithmetic
@@ -186,10 +188,8 @@
   `define JAL       `W_OPCODE'b000011
   `define JALR      `W_OPCODE'b000000
   `define JR        `W_OPCODE'b000000
-  `define MC0       `W_OPCODE'b010000
   `define MFC0      `W_OPCODE'b010000
   `define MTC0      `W_OPCODE'b010000
-
 
   // Load Store Instructions
   `define LB        `W_OPCODE'b100000

@@ -3,7 +3,7 @@
 `include "regfile.v"
 `include "alu.v"
 `include "memory.v"
-`include "fake_spi.v"
+`include "regfile_spi.v"
 
 `timescale 1ns / 1ps
 
@@ -41,10 +41,10 @@ module SINGLE_CYCLE_CPU
 
   reg [`W_ALU_SRC-1:0] alu_src; // ALU Source
   reg [`W_REG_SRC-1:0] reg_src;
-  reg [`W_SPI_MODE-1:0] spi_mode;
+  reg [`W_SPI_CTRL-1:0] spi_ctrl;
   DECODE decode(inst, wa, ra1, ra2,
                 reg_wen, imm_ext, imm,
-                jump_addr, alu_op, spi_mode, pc_src,
+                jump_addr, alu_op, spi_ctrl, pc_src,
                 mem_cmd, alu_src, reg_src);
 
   reg isZero;
@@ -54,27 +54,12 @@ module SINGLE_CYCLE_CPU
   reg [`W_CPU-1:0] wd;
   REGFILE regfile(clk, rst, reg_wen, wa, wd, ra1, ra2, rd1, rd2);
 
-
-// input clk,
-// input reg [7:0] data_in,
-// input control_rd,
-// output reg [7:0] data_out,
-// output dv_data_out,
-//
-  reg dv_miso;
-  reg [7:0] data_miso;
-  reg dv_mosi;
-  reg [7:0] data_mosi;
-  reg [7:0] spi_out;
-  reg spi_dv;
-  FAKE_SPI_CONTROL fake_spi_control(clk, 8'b00001111, spi_mode, spi_out,
-                                    spi_dv, dv_miso, data_miso,
-                                    dv_mosi, data_mosi);
-
-
-  always @* begin
-    $display ("MODE: %b", spi_mode);
-  end
+  reg dv_spi;
+  reg [`W_CPU-1:0] spi_out;
+  // ra1: address to read in spi register
+  // wa:  addres to write to in spi register
+  // rd2: data to send to spi
+  SPI_REGFILE spi_regfile(clk, rst, ra2, rd2, spi_ctrl, dv_spi, spi_out);
 
   //immediate mux
   reg [`W_CPU-1:0] ALUSrcOut;
@@ -116,32 +101,25 @@ module SINGLE_CYCLE_CPU
     endcase
   end
 
-  reg [`W_CPU-1:0] wd_inter;
-
   always @* begin
     case (reg_src)
       `REG_SRC_ALU :
         begin
-          wd_inter = aluOut;
+          wd = aluOut;
         end
       `REG_SRC_MEM :
         begin
-          wd_inter = dataOut; // from data memory
+          wd = dataOut; // from data memory
         end
       `REG_SRC_PC :
         begin
-          wd_inter = aluOut; // REG_SRC_PC HERE
+          wd = aluOut; // REG_SRC_PC HERE
           // MAYBE branch address????
         end
-    endcase
-
-    case(spi_mode) // handles choosing between spi data and cpu data
-      `SPI_RECEIVE: // miso case
-      begin
-      $display("DATA RECEIVED");
-        wd = spi_out;
-      end
-      default: wd = wd_inter;
+      `REG_SRC_SPI :
+        begin
+          wd = spi_out; // from data memory
+        end
     endcase
   end
 

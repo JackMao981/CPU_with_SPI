@@ -17,8 +17,11 @@ module DECODE
   output reg [`W_JADDR-1:0]   addr,    // Jump Addr Field
   // ALU Control
   output reg [`W_FUNCT-1:0]   alu_op,  // ALU OP
+
+  // SPI control
+  output reg [`W_SPI_CTRL-1:0] spi_ctrl,
+
   // Muxing
-  output reg [`W_SPI_MODE-1:0] spi_mode,
   output reg [`W_PC_SRC-1:0]  pc_src,  // PC Source
   output reg [`W_MEM_CMD-1:0] mem_cmd, // Mem Command
   output reg [`W_ALU_SRC-1:0] alu_src, // ALU Source
@@ -33,7 +36,6 @@ module DECODE
   assign rd   = inst[`FLD_RD];
   assign imm  = inst[`FLD_IMM];
   assign addr = inst[`FLD_ADDR];
-  // assign spi_mode = 2'b00;
 
   always @(inst) begin
     if (`DEBUG_DECODE)
@@ -52,7 +54,7 @@ module DECODE
           imm_ext = `IMM_SIGN_EXT; mem_cmd = `MEM_NOP;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_ALU;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_ADD;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `ADDIU:
         begin
@@ -60,7 +62,7 @@ module DECODE
           imm_ext = `IMM_SIGN_EXT; mem_cmd = `MEM_NOP;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_ALU;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_ADDU;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `ANDI:
         begin
@@ -68,7 +70,7 @@ module DECODE
           mem_cmd = `MEM_NOP; imm_ext = `IMM_ZERO_EXT;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_ALU;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_AND;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `ORI:
         begin
@@ -76,7 +78,7 @@ module DECODE
           mem_cmd = `MEM_NOP; imm_ext = `IMM_ZERO_EXT;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_ALU;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_OR;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `SLTI:
         begin
@@ -84,7 +86,7 @@ module DECODE
           imm_ext = `IMM_SIGN_EXT; mem_cmd = `MEM_NOP;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_ALU;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_SLT;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `SLTIU:
         begin
@@ -92,7 +94,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_ALU;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_SLTU;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `XORI:
         begin
@@ -100,7 +102,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_ALU;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_XOR;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
 
       // Part 3 Start
@@ -110,7 +112,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_PC;
           pc_src  = `PC_SRC_JUMP;  alu_op  = inst[`FLD_FUNCT];
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `JAL:
         begin
@@ -118,7 +120,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_WRITE;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_PC; // either this or the PC
           pc_src  = `PC_SRC_JUMP;  alu_op  = inst[`FLD_FUNCT];
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
 
       `BEQ:
@@ -127,7 +129,7 @@ module DECODE
           imm_ext = `IMM_SIGN_EXT; mem_cmd = `MEM_NOP;
           alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_PC;
           pc_src  = `PC_SRC_BRCH;  alu_op  = `F_SUB;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `BNE:
         begin
@@ -135,7 +137,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
           alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_PC;
           pc_src  = `PC_SRC_BRCH;  alu_op  = `F_SUB;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
 
       // lbu, lhu, luui, lw
@@ -145,7 +147,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_READ;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_MEM;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_ADD;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `LHU:
         begin
@@ -153,6 +155,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_READ;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_MEM;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_ADD;
+          spi_ctrl = `SPI_NOP;
         end
       `LUI:
         begin
@@ -160,7 +163,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_MEM;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_SLL;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `LW:
         begin
@@ -168,7 +171,7 @@ module DECODE
           imm_ext = `IMM_SIGN_EXT; mem_cmd = `MEM_READ;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_MEM;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_ADD;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       // sb, sh, sw
       `SB:
@@ -177,7 +180,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_WRITE;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_MEM;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_ADD;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `SH:
         begin
@@ -185,7 +188,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_WRITE;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_MEM;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_ADD;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
       `SW:
         begin
@@ -193,7 +196,7 @@ module DECODE
           imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_WRITE;
           alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_MEM;
           pc_src  = `PC_SRC_NEXT;  alu_op  = `F_ADD;
-          spi_mode = `SPI_SEND;
+          spi_ctrl = `SPI_NOP;
         end
 
       // Part 2
@@ -205,7 +208,7 @@ module DECODE
             imm_ext = `IMM_SIGN_EXT; mem_cmd = `MEM_NOP;
             alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
             pc_src  = `PC_SRC_NEXT;  alu_op  = `F_ADD;
-            spi_mode = `SPI_SEND;
+            spi_ctrl = `SPI_NOP;
           end
         `F_ADDU:
           begin
@@ -213,7 +216,7 @@ module DECODE
             imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
             alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
             pc_src  = `PC_SRC_NEXT;  alu_op  = `F_ADDU;
-            spi_mode = `SPI_SEND;
+            spi_ctrl = `SPI_NOP;
          end
        `F_AND:
          begin
@@ -221,7 +224,7 @@ module DECODE
            mem_cmd = `MEM_NOP; imm_ext = `IMM_ZERO_EXT;
            alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
            pc_src  = `PC_SRC_NEXT;  alu_op  = `F_AND;
-           spi_mode = `SPI_SEND;
+           spi_ctrl = `SPI_NOP;
          end
        `F_NOR:
          begin
@@ -229,7 +232,7 @@ module DECODE
            mem_cmd = `MEM_NOP; imm_ext = `IMM_ZERO_EXT;
            alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
            pc_src  = `PC_SRC_NEXT;  alu_op  = `F_NOR;
-           spi_mode = `SPI_SEND;
+           spi_ctrl = `SPI_NOP;
          end
        `F_OR:
          begin
@@ -237,7 +240,7 @@ module DECODE
            mem_cmd = `MEM_NOP;  imm_ext = `IMM_ZERO_EXT;
            alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
            pc_src  = `PC_SRC_NEXT;  alu_op  = `F_OR;
-           spi_mode = `SPI_SEND;
+           spi_ctrl = `SPI_NOP;
          end
        `F_SLT:
          begin
@@ -245,7 +248,7 @@ module DECODE
            imm_ext = `IMM_SIGN_EXT; mem_cmd = `MEM_NOP;
            alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
            pc_src  = `PC_SRC_NEXT;  alu_op  = `F_SLT;
-           spi_mode = `SPI_SEND;
+           spi_ctrl = `SPI_NOP;
          end
        `F_SLTU:
          begin
@@ -253,7 +256,7 @@ module DECODE
            imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
            alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
            pc_src  = `PC_SRC_NEXT;  alu_op  = `F_SLTU;
-           spi_mode = `SPI_SEND;
+           spi_ctrl = `SPI_NOP;
          end
        `F_SLL:
          begin
@@ -261,7 +264,7 @@ module DECODE
            imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
            alu_src = `ALU_SRC_SHA;  reg_src = `REG_SRC_ALU;
            pc_src  = `PC_SRC_NEXT;  alu_op  = `F_SLL;
-           spi_mode = `SPI_SEND;
+           spi_ctrl = `SPI_NOP;
          end
          `F_SRL:
            begin
@@ -269,7 +272,7 @@ module DECODE
              imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
              alu_src = `ALU_SRC_SHA;  reg_src = `REG_SRC_ALU;
              pc_src  = `PC_SRC_NEXT;  alu_op  = `F_SRL;
-             spi_mode = `SPI_SEND;
+             spi_ctrl = `SPI_NOP;
            end
          `F_SRAV:
            begin
@@ -277,7 +280,7 @@ module DECODE
              mem_cmd = `MEM_NOP;  imm_ext = `IMM_ZERO_EXT;
              alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
              pc_src  = `PC_SRC_NEXT;  alu_op  = `F_SRAV;
-             spi_mode = `SPI_SEND;
+             spi_ctrl = `SPI_NOP;
            end
          `F_SUB:
            begin
@@ -285,7 +288,7 @@ module DECODE
              imm_ext = `IMM_SIGN_EXT; mem_cmd = `MEM_NOP;
              alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
              pc_src  = `PC_SRC_NEXT;  alu_op  = `F_SUB;
-             spi_mode = `SPI_SEND;
+             spi_ctrl = `SPI_NOP;
            end
          `F_SUBU:
            begin
@@ -293,7 +296,7 @@ module DECODE
              imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
              alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
              pc_src  = `PC_SRC_NEXT;  alu_op  = `F_SUBU;
-             spi_mode = `SPI_SEND;
+             spi_ctrl = `SPI_NOP;
            end
         `F_SYSCAL:
           begin
@@ -303,7 +306,7 @@ module DECODE
             imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
             alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
             pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
-            spi_mode = `SPI_SEND;
+            spi_ctrl = `SPI_NOP;
           end
 
         //PART 3
@@ -313,31 +316,32 @@ module DECODE
             imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_WRITE;
             alu_src = `ALU_SRC_IMM;  reg_src = `REG_SRC_MEM;
             pc_src  = `PC_SRC_REGF;  alu_op  = inst[`FLD_FUNCT];
-            spi_mode = `SPI_SEND;
+            spi_ctrl = `SPI_NOP;
           end
 
-        // New Part!
-        `MC0:
+          // New Part!
+        `MFC0: // same op code, so it doesn't matter if mfc0 or mtc0
           begin
             case(inst[`FLD_RS])
               `RS_MFC0:
               begin
                 wa = rd; ra1 = rs; ra2 = rt; reg_wen = `WDIS;
                 imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
-                alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
+                alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_SPI;
                 pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
-                spi_mode = `SPI_RECEIVE;
+                spi_ctrl = `MISO;
               end
               `RS_MTC0:
               begin
                 wa = rd; ra1 = rs; ra2 = rt; reg_wen = `WDIS;
                 imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
-                alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
+                alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_SPI;
                 pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
-                spi_mode = `SPI_SEND;
+                spi_ctrl = `MOSI;
               end
             endcase
           end
+
         endcase
       end
 
@@ -345,7 +349,8 @@ module DECODE
         wa = rd; ra1 = rs; ra2 = rt; reg_wen = `WDIS;
         imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
         alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
-        pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT]; spi_mode = `SPI_SEND; end
+        pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT]; spi_ctrl = `SPI_NOP;
+        end
     endcase
   end
 endmodule
