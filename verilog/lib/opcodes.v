@@ -176,6 +176,7 @@
   `define MULTU     `W_OPCODE'b000000
 
   // Branch and Jump Instructions
+  `define BSPI      `W_OPCODE'b010111
   `define BEQ       `W_OPCODE'b000100
   `define BGEZ      `W_OPCODE'b000001
   `define BGEZAL    `W_OPCODE'b000001

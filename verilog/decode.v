@@ -320,6 +320,14 @@ module DECODE
           end
 
           // New Part!
+        `BSPI:
+          begin
+            wa = rt; ra1 = rs; ra2 = rt; reg_wen = `WDIS;
+            imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
+            alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_PC;
+            pc_src  = `PC_SRC_BRCH;  alu_op  = `F_SUB;
+            spi_ctrl = `SPI_NOP;
+          end
         `MFC0: // same op code, so it doesn't matter if mfc0 or mtc0
           begin
             case(inst[`FLD_RS])

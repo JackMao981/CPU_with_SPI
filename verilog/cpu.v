@@ -94,8 +94,16 @@ module SINGLE_CYCLE_CPU
   always @* begin
     case(inst[`FLD_OPCODE])
     // checks if BNE or BEQ and sets branch_ctrl accordingly
-      `BEQ: begin branch_ctrl = isZero; end
-      `BNE: begin branch_ctrl = ~isZero; end
+      `BEQ:  begin branch_ctrl = isZero; end
+      `BNE:  begin branch_ctrl = ~isZero; end
+      `BGTZ: begin
+        if (dv_spi == 1'b1) begin
+          branch_ctrl = 1'b1;
+        end
+        else begin
+          branch_ctrl = 1'b0;
+        end
+      end
 
       default: branch_ctrl = isZero;
     endcase

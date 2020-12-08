@@ -25,12 +25,12 @@ module SPI_REGFILE
     end
     else begin
 
-      if (ctrl == 1) begin // MOSI
+      if (ctrl == 2'b01) begin // MOSI
         ctrl_state = 2'b01;
         rf[addr] = wd; // writes data from cpu to spi register
         dv_spi = 1'b0;
       end
-      else if (ctrl == 2) begin // MISO
+      else if (ctrl == 2'b10) begin // MISO
         ctrl_state = 2'b10;
         spi_out = 22;
         #6969

@@ -1,13 +1,14 @@
-addi $t0, $zero, 0xabba
-addi $t1, $zero, 0x0001
+addi $t0, $zero, 0x16
+# addi $t1, $zero, 0x0bba
 
 # mosi:
 #   mtc0 $t0, 0
 #
-# miso:
-#   mfc0 $t1, 2
-#   bne  $t1, $t0, finish
-#   j miso
+miso:
+  mfc0 $t1, 0
+  beq  $t1, $t0, finish
+  # addi $t1, $zero, 0x16
+  j miso
 
 # mfc0 $t1, 2
 
