@@ -35,13 +35,15 @@ module SINGLE_CYCLE_CPU
   reg [`W_JADDR-1:0]   jump_addr;    // Jump Addr Field
   // ALU Control
   reg [`W_FUNCT-1:0]   alu_op;  // ALU OP
+
+  reg [`W_SPI_CTRL-1:0] spi_ctrl;
+
   // Muxinginput control_rd,input control_rd,
   reg [`W_PC_SRC-1:0] pc_src;
   reg [`W_EN-1:0] branch_ctrl;
 
   reg [`W_ALU_SRC-1:0] alu_src; // ALU Source
   reg [`W_REG_SRC-1:0] reg_src;
-  reg [`W_SPI_CTRL-1:0] spi_ctrl;
   DECODE decode(inst, wa, ra1, ra2,
                 reg_wen, imm_ext, imm,
                 jump_addr, alu_op, spi_ctrl, pc_src,
@@ -54,12 +56,11 @@ module SINGLE_CYCLE_CPU
   reg [`W_CPU-1:0] wd;
   REGFILE regfile(clk, rst, reg_wen, wa, wd, ra1, ra2, rd1, rd2);
 
-  reg dv_spi;
   reg [`W_CPU-1:0] spi_out;
   // ra1: address to read in spi register
   // wa:  addres to write to in spi register
   // rd2: data to send to spi
-  SPI_REGFILE spi_regfile(clk, rst, ra2, rd2, spi_ctrl, dv_spi, spi_out);
+  SPI_REGFILE spi_regfile(clk, rst, ra1, rd2, spi_ctrl, spi_out);
 
   //immediate mux
   reg [`W_CPU-1:0] ALUSrcOut;
@@ -96,14 +97,6 @@ module SINGLE_CYCLE_CPU
     // checks if BNE or BEQ and sets branch_ctrl accordingly
       `BEQ:  begin branch_ctrl = isZero; end
       `BNE:  begin branch_ctrl = ~isZero; end
-      `BGTZ: begin
-        if (dv_spi == 1'b1) begin
-          branch_ctrl = 1'b1;
-        end
-        else begin
-          branch_ctrl = 1'b0;
-        end
-      end
 
       default: branch_ctrl = isZero;
     endcase
@@ -122,11 +115,10 @@ module SINGLE_CYCLE_CPU
       `REG_SRC_PC :
         begin
           wd = aluOut; // REG_SRC_PC HERE
-          // MAYBE branch address????
         end
       `REG_SRC_SPI :
         begin
-          wd = spi_out; // from data memory
+          wd = spi_out; // from data memory;
         end
     endcase
   end

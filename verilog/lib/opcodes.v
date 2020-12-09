@@ -32,9 +32,9 @@
   `define W_WORD       2
 
   // SPI Control Vals
-  `define MISO         `W_SPI_CTRL'b10
-  `define MOSI         `W_SPI_CTRL'b01
-  `define SPI_NOP      `W_SPI_CTRL'b00
+  `define SPI_NOP      `W_SPI_CTRL'd0
+  `define MOSI         `W_SPI_CTRL'd1
+  `define MISO         `W_SPI_CTRL'd2
 
   // Lots of MUX and Enable Defines
   `define WREN         `W_EN'b1

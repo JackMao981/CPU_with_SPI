@@ -46,6 +46,7 @@ module DECODE
   end
 
   always @* begin
+
     case(inst[`FLD_OPCODE])
       // Jon, if you're reding this, we defeated the dragon
       `ADDI:
@@ -199,6 +200,29 @@ module DECODE
           spi_ctrl = `SPI_NOP;
         end
 
+        // New Part!
+      `MFC0: // same op code, so it doesn't matter if mfc0 or mtc0
+        begin
+          case(inst[`FLD_RS])
+            `RS_MTC0:
+            begin
+              wa = rt; ra1 = rd; ra2 = rt; reg_wen = `WDIS;
+              imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
+              alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_SPI;
+              pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
+              spi_ctrl = `MOSI;
+            end
+            `RS_MFC0:
+            begin
+              wa = rt; ra1 = rd; ra2 = rt; reg_wen = `WREN;
+              imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
+              alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_SPI;
+              pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
+              spi_ctrl = `MISO;
+            end
+          endcase
+        end
+
       // Part 2
       `OP_ZERO: begin // set every output
         case(inst[`FLD_FUNCT])
@@ -319,37 +343,6 @@ module DECODE
             spi_ctrl = `SPI_NOP;
           end
 
-          // New Part!
-        `BSPI:
-          begin
-            wa = rt; ra1 = rs; ra2 = rt; reg_wen = `WDIS;
-            imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
-            alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_PC;
-            pc_src  = `PC_SRC_BRCH;  alu_op  = `F_SUB;
-            spi_ctrl = `SPI_NOP;
-          end
-        `MFC0: // same op code, so it doesn't matter if mfc0 or mtc0
-          begin
-            case(inst[`FLD_RS])
-              `RS_MFC0:
-              begin
-                wa = rd; ra1 = rs; ra2 = rt; reg_wen = `WDIS;
-                imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
-                alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_SPI;
-                pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
-                spi_ctrl = `MISO;
-              end
-              `RS_MTC0:
-              begin
-                wa = rd; ra1 = rs; ra2 = rt; reg_wen = `WDIS;
-                imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
-                alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_SPI;
-                pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
-                spi_ctrl = `MOSI;
-              end
-            endcase
-          end
-
         endcase
       end
 
@@ -357,7 +350,8 @@ module DECODE
         wa = rd; ra1 = rs; ra2 = rt; reg_wen = `WDIS;
         imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
         alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_ALU;
-        pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT]; spi_ctrl = `SPI_NOP;
+        pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
+        spi_ctrl = `SPI_NOP;
         end
     endcase
   end

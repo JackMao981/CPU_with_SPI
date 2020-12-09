@@ -12,11 +12,11 @@ module spi (
 
   // the data and its signal  (MOSI)
   output reg transmit_ready, // set to 1 when SPI device is ready to send a new byte
-  input [W_Byte-1:0] data_to_transmit, // 8 bit data being sent from device
-  input data_out_valid, // blipped when new data is loaded and ready
+  input [W_Data-1:0] data_to_transmit, // 8 bit data being sent from device
+  input  data_transmit_valid, // blipped when new data is loaded and ready
 
   // (MISO)
-  output reg [W_Byte-1:0] data_in, // maybe reg?
+  output reg [W_Data-1:0] data_in, // maybe reg?
   output reg data_in_valid, // goes high once data has been fully received
 
   //SPI in/output
@@ -26,12 +26,12 @@ module spi (
 
 );
 
-  parameter W_Byte = 8;
+  parameter W_Data = 32;
 
 //Loads Mosi Data
 //stores data being sent to prevent data loss from glitches
-reg [W_Byte-1:0] data_out_buffer;
-reg data_out_valid_buffer;
+reg [W_Data-1:0] data_out_buffer;
+reg  data_transmit_valid_buffer;
 
 always @(posedge clk or negedge rst)
 begin
@@ -39,14 +39,14 @@ begin
   if (~rst)
   begin
     data_out_buffer <= 8'h00;
-    data_out_valid_buffer <= 1'b0;
+     data_transmit_valid_buffer <= 1'b0;
   end
 
   //Delays for one clock pulse before sending data
   else
   begin
-    data_out_valid_buffer <= data_out_valid;
-    if (data_out_valid)
+     data_transmit_valid_buffer <=  data_transmit_valid;
+    if ( data_transmit_valid)
     begin
       data_out_buffer <= data_to_transmit;
     end
@@ -56,7 +56,7 @@ end
 
 //Creates MOSI_data
 //Keeps track of current bit being sent
-reg [W_Byte-1:0] MOSI_counter;
+reg [W_Data-1:0] MOSI_counter;
 
 always @(posedge clk or negedge rst)
 begin
@@ -76,7 +76,7 @@ begin
     else
     begin
       //if data being passed in is valid
-      if(data_out_valid)
+      if( data_transmit_valid)
       begin
         MOSI_out <= data_out_buffer[MOSI_counter];
         MOSI_counter <= MOSI_counter - 1;
@@ -90,7 +90,7 @@ begin
 end
 
 // MISO
-reg [W_Byte-1:0] MISO_counter;
+reg [W_Data-1:0] MISO_counter;
 always @(posedge clk or negedge rst)
 begin
   if (~rst)

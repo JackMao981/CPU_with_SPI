@@ -11,35 +11,34 @@ module SPI_REGFILE
   input      [`W_REG-1:0] addr,
   input      [`W_CPU-1:0] wd,
   input      [`W_SPI_CTRL-1:0] ctrl,
-  output reg              dv_spi,
   output reg [`W_CPU-1:0] spi_out);
 
   /** Storage Element **/
   reg [`W_CPU-1:0] rf [31:0];
 
-  reg [1:0] ctrl_state;
+
+  always @* begin
+    case (ctrl)
+      `MOSI: begin // MTC0
+        rf[addr] = wd; // writes data from cpu to spi register
+        spi_out = 0;
+        rf[`REG_0] = 1'b0;
+      end
+      `MISO: begin // MFC0\
+        spi_out = rf[addr];
+        rf[`REG_0] = 1'b1;
+      end
+      default: begin rf[`REG_0] = 1'b0; spi_out = 0; end
+    endcase
+  end
+
   always @(posedge clk,posedge rst) begin
+    $display("ctrl: %b", ctrl);
     if (rst) begin
       for(int i = 0; i<32; i=i+1)
         rf[i] = 0;
     end
     else begin
-
-      if (ctrl == 2'b01) begin // MOSI
-        ctrl_state = 2'b01;
-        rf[addr] = wd; // writes data from cpu to spi register
-        dv_spi = 1'b0;
-      end
-      else if (ctrl == 2'b10) begin // MISO
-        ctrl_state = 2'b10;
-        spi_out = 22;
-        #6969
-        dv_spi = 1'b1;
-      end
-      else begin // do nothing
-        ctrl_state = 2'b00;
-        dv_spi = 1'b0;
-      end
 
       if (`DEBUG_REGFILE_SPI) begin
         /* verilator lint_off STMTDLY */
@@ -53,6 +52,7 @@ module SPI_REGFILE
         $display("$s6 = %x $s5 = %x $s6 = %x $s7 = %x",rf[`REG_S4],rf[`REG_S5],rf[`REG_S6],rf[`REG_S7]);
         $display("$t8 = %x $t9 = %x $k0 = %x $k1 = %x",rf[`REG_T8],rf[`REG_T9],rf[`REG_K0],rf[`REG_K1]);
         $display("$gp = %x $sp = %x $s8 = %x $ra = %x",rf[`REG_GP],rf[`REG_SP],rf[`REG_S8],rf[`REG_RA]);
+        $display ("spi_ctrl: %b", ctrl);
       end
     end
 
