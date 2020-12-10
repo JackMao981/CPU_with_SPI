@@ -32,13 +32,13 @@ module spi (
 //stores data being sent to prevent data loss from glitches
 reg [W_Data-1:0] data_out_buffer;
 reg data_transmit_valid_buffer;
-assign reg transmit_ready; // can set transmit ready to input
+reg transmit_ready; // can set transmit ready to input
 assign spi_clk = clk;
 
 always @(posedge clk or negedge rst)
 begin
   //Catches reset case
-  if (~rst)
+  if (rst)
   begin
     data_out_buffer <= 8'h00;
     data_transmit_valid_buffer <= 1'b0;
@@ -65,7 +65,7 @@ reg [W_Counter-1:0] MOSI_counter;
 always @(posedge clk or negedge rst)
 begin
   //Catches reset case
-  if (~rst)
+  if (rst)
   begin
     MOSI_out <= 1'b0;
     MOSI_counter <= 5'b11111;
@@ -98,8 +98,9 @@ end
 reg [W_Counter-1:0] MISO_counter;
 always @(posedge clk or negedge rst)
 begin
-  if (~rst)
+  if (rst)
   begin
+    $display("rst  = %x",rst);
     data_in <= 1'd0;
     data_in_valid <= 1'b0;
     MISO_counter <= 5'b11111;
@@ -110,12 +111,18 @@ begin
   begin
     if (transmit_ready) // keep an eye on this
     begin
+      $display("transmit ready  = %x",transmit_ready);
       MISO_counter <= 5'b11111;
+      transmit_ready = 1'b0;
     end
     else
     begin
       data_in[MISO_counter] <= MISO_in;
       MISO_counter <= MISO_counter - 1;
+      $display("counter  = %x",MISO_counter);
+      if (MISO_counter == 0) begin
+        data_in_valid = 1'b1;
+      end
     end
   end
 end

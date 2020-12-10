@@ -22,16 +22,20 @@ module SPI_REGFILE
       `MOSI: begin // MTC0
         rf[addr] = wd; // writes data from cpu to spi register
         rf[`REG_MOSI] = wd;
+        $display("MOSI  = %x",rf[`REG_MOSI]);
         spi_out = 0;
         rf[`REG_DV] = 1'b0;
       end
       `MISO: begin // MFC0
+        $display("data_in_valid  = %x",data_in_valid);
         if(data_in_valid == 1'b1) begin
           rf[`REG_MISO] = MISO_data;
+          $display("MISO  = %x",rf[`REG_MISO]);
           spi_out = rf[`REG_MISO];
           rf[`REG_DV] = 1'b1;
         end
         else begin
+          $display("NO  = %x",0);
           rf[`REG_DV] = 1'b0;
         end
       end
@@ -82,7 +86,7 @@ module SPI_REGFILE
     else begin
       MISO_in = 1'b1;
     end
-    $display ("MISO IN: %b", MISO_in);
+    // $display ("MISO IN: %b", MISO_in);
   end
 
 
