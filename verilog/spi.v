@@ -1,4 +1,4 @@
-// include stuff?
+`include "lib/opcodes.v"
 
 module spi (
   // Same inputs from CPU
@@ -11,7 +11,7 @@ module spi (
   // input CPOL,
 
   // the data and its signal  (MOSI)
-  output reg transmit_ready, // set to 1 when SPI device is ready to send a new byte
+  // output reg transmit_ready, // set to 1 when SPI device is ready to send a new byte
   input [W_Data-1:0] data_to_transmit, // 8 bit data being sent from device
   input  data_transmit_valid, // blipped when new data is loaded and ready
 
@@ -20,18 +20,20 @@ module spi (
   output reg data_in_valid, // goes high once data has been fully received
 
   //SPI in/output
-  output reg MOSI_out, // the bit that you send out
-  output reg MISO_in,
+  input MISO_in,
+  output spi_clk,
+  output reg MOSI_out // the bit that you send out
+  ); //CHECK THIS LATER
 
-
-);
-
-  parameter W_Data = 32;
+  parameter W_Data = `W_CPU;
+  parameter W_Counter = 5;
 
 //Loads Mosi Data
 //stores data being sent to prevent data loss from glitches
 reg [W_Data-1:0] data_out_buffer;
-reg  data_transmit_valid_buffer;
+reg data_transmit_valid_buffer;
+assign reg transmit_ready; // can set transmit ready to input
+assign spi_clk = clk;
 
 always @(posedge clk or negedge rst)
 begin
@@ -39,7 +41,8 @@ begin
   if (~rst)
   begin
     data_out_buffer <= 8'h00;
-     data_transmit_valid_buffer <= 1'b0;
+    data_transmit_valid_buffer <= 1'b0;
+    transmit_ready = 1'b1;
   end
 
   //Delays for one clock pulse before sending data
@@ -49,6 +52,7 @@ begin
     if ( data_transmit_valid)
     begin
       data_out_buffer <= data_to_transmit;
+      transmit_ready = 1'b0;
     end
   end
 end
@@ -56,7 +60,7 @@ end
 
 //Creates MOSI_data
 //Keeps track of current bit being sent
-reg [W_Data-1:0] MOSI_counter;
+reg [W_Counter-1:0] MOSI_counter;
 
 always @(posedge clk or negedge rst)
 begin
@@ -64,14 +68,15 @@ begin
   if (~rst)
   begin
     MOSI_out <= 1'b0;
-    MOSI_counter <= 3'b111;
+    MOSI_counter <= 5'b11111;
+    transmit_ready = 1'b1;
   end
   //Sends current index bit
   else
   begin
     if(transmit_ready) // if device is ready to send new data
     begin
-      MOSI_counter <= 3'b111;
+      MOSI_counter <= 5'b11111;
     end
     else
     begin
@@ -80,7 +85,7 @@ begin
       begin
         MOSI_out <= data_out_buffer[MOSI_counter];
         MOSI_counter <= MOSI_counter - 1;
-        if (MOSI_counter == 3'b000)
+        if (MOSI_counter == 5'b00000)
         begin
           transmit_ready <= 1'b1;
         end
@@ -90,21 +95,22 @@ begin
 end
 
 // MISO
-reg [W_Data-1:0] MISO_counter;
+reg [W_Counter-1:0] MISO_counter;
 always @(posedge clk or negedge rst)
 begin
   if (~rst)
   begin
     data_in <= 1'd0;
     data_in_valid <= 1'b0;
-    MISO_counter <= 3'b111;
+    MISO_counter <= 5'b11111;
+    transmit_ready = 1'b1; // maybe replace with receive ready
   end
 
   else
   begin
-    if (transmit_ready)
+    if (transmit_ready) // keep an eye on this
     begin
-      MISO_counter <= 3'b111;
+      MISO_counter <= 5'b11111;
     end
     else
     begin

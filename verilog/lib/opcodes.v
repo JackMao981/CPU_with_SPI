@@ -95,6 +95,13 @@
   `define REG_S8 `W_REG'd30
   `define REG_RA `W_REG'd31
 
+  // SPI Registers
+  `define REG_DV     `W_REG'd0 // says when miso data has been loaded
+  `define REG_MOSI   `W_REG'd2
+  `define REG_MOSI_S `W_REG'd3
+  `define REG_MISO   `W_REG'd4
+  `define REG_MISO_s `W_REG'd5
+
   // FUNCT Codes
   `define F_ADD     `W_OPCODE'b100000
   `define F_ADDU    `W_OPCODE'b100001

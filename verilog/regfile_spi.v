@@ -1,5 +1,6 @@
 `include "lib/debug.v"
 `include "lib/opcodes.v"
+`include "spi.v"
 `timescale 1ns / 1ps
 
 // Register file two read ports and one write port
@@ -16,24 +17,77 @@ module SPI_REGFILE
   /** Storage Element **/
   reg [`W_CPU-1:0] rf [31:0];
 
-
   always @* begin
     case (ctrl)
       `MOSI: begin // MTC0
         rf[addr] = wd; // writes data from cpu to spi register
+        rf[`REG_MOSI] = wd;
         spi_out = 0;
-        rf[`REG_0] = 1'b0;
+        rf[`REG_DV] = 1'b0;
       end
-      `MISO: begin // MFC0\
-        spi_out = rf[addr];
-        rf[`REG_0] = 1'b1;
+      `MISO: begin // MFC0
+        if(data_in_valid == 1'b1) begin
+          rf[`REG_MISO] = MISO_data;
+          spi_out = rf[`REG_MISO];
+          rf[`REG_DV] = 1'b1;
+        end
+        else begin
+          rf[`REG_DV] = 1'b0;
+        end
       end
-      default: begin rf[`REG_0] = 1'b0; spi_out = 0; end
+      default: begin rf[`REG_DV] = 1'b0; spi_out = 0; end
     endcase
   end
 
+  //ACTUAL SPI STUFF BELOW THIS COMMENT
+  //MOSI REGISTER: 2
+  //MOSI STORE:    3
+  //MISO REGISTER: 4
+  //MISO STORE:    5
+
+  // the data and its signal  (MOSI)
+  // reg transmit_ready; // set to 1 when SPI device is ready to send a new byte
+  reg [`W_CPU-1:0] data_to_transmit; // 8 bit data being sent from device
+  reg  data_transmit_valid; // blipped when new data is loaded and ready
+
+  // (MISO)
+  // reg [`W_CPU-1:0] data_in; // maybe reg?
+  reg data_in_valid; // goes high once data has been fully received
+
+  //SPI in/output
+  reg MISO_in;
+  wire spi_clk;
+  reg MOSI_out; // the bit that you send out
+
+  reg [`W_CPU-1:0] MOSI_data;
+  reg [`W_CPU-1:0] MISO_data;
+
+  spi SPI(rst, clk,
+          MOSI_data, data_transmit_valid,
+          MISO_data, data_in_valid,
+          MISO_in, spi_clk, MOSI_out);
+
+  always @* begin
+    if (rf[`REG_MOSI] != rf[`REG_MOSI_S]) begin //might need transmit ready to prevent data override
+      rf[`REG_MOSI_S] = rf[`REG_MOSI];
+      MOSI_data = rf[`REG_MOSI];
+      data_transmit_valid = 1'b1;
+    end
+  end
+
+  always @(posedge clk) begin
+    if (MISO_in == 1'b1) begin
+      MISO_in = 1'b0;
+    end
+    else begin
+      MISO_in = 1'b1;
+    end
+    $display ("MISO IN: %b", MISO_in);
+  end
+
+
+
   always @(posedge clk,posedge rst) begin
-    $display("ctrl: %b", ctrl);
     if (rst) begin
       for(int i = 0; i<32; i=i+1)
         rf[i] = 0;
@@ -52,7 +106,6 @@ module SPI_REGFILE
         $display("$s6 = %x $s5 = %x $s6 = %x $s7 = %x",rf[`REG_S4],rf[`REG_S5],rf[`REG_S6],rf[`REG_S7]);
         $display("$t8 = %x $t9 = %x $k0 = %x $k1 = %x",rf[`REG_T8],rf[`REG_T9],rf[`REG_K0],rf[`REG_K1]);
         $display("$gp = %x $sp = %x $s8 = %x $ra = %x",rf[`REG_GP],rf[`REG_SP],rf[`REG_S8],rf[`REG_RA]);
-        $display ("spi_ctrl: %b", ctrl);
       end
     end
 
