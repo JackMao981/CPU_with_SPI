@@ -11,7 +11,7 @@ module spi (
   // input CPOL,
 
   // the data and its signal  (MOSI)
-  // output reg transmit_ready, // set to 1 when SPI device is ready to send a new byte
+  output reg transmit_ready, // set to 1 when SPI device is ready to send a new byte
   input [W_Data-1:0] data_to_transmit, // 8 bit data being sent from device
   input  data_transmit_valid, // blipped when new data is loaded and ready
 
@@ -32,7 +32,7 @@ module spi (
 //stores data being sent to prevent data loss from glitches
 reg [W_Data-1:0] data_out_buffer;
 reg data_transmit_valid_buffer;
-assign reg transmit_ready; // can set transmit ready to input
+// reg transmit_ready; // can set transmit ready to input
 assign spi_clk = clk;
 
 always @(posedge clk or negedge rst)
@@ -48,8 +48,8 @@ begin
   //Delays for one clock pulse before sending data
   else
   begin
-     data_transmit_valid_buffer <=  data_transmit_valid;
-    if ( data_transmit_valid)
+    data_transmit_valid_buffer <=  data_transmit_valid;
+    // if ( data_transmit_valid)
     begin
       data_out_buffer <= data_to_transmit;
       transmit_ready = 1'b0;
@@ -89,6 +89,9 @@ begin
         begin
           transmit_ready <= 1'b1;
         end
+        else begin
+          transmit_ready <= 1'b0;
+        end
       end
     end
   end
@@ -116,6 +119,7 @@ begin
     begin
       data_in[MISO_counter] <= MISO_in;
       MISO_counter <= MISO_counter - 1;
+      transmit_ready <= 1'b0;
     end
   end
 end

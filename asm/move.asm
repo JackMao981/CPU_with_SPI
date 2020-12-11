@@ -3,9 +3,12 @@ addi $t1, $zero, 0x16
 
 mosi:
   mtc0 $t1, $t0
+  mfc0 $t3, $zero
+  bne  $t3, $zero, finish
+  j mosi
 #
-miso:
-  mfc0 $t2, $t0 # copies register zero from the coprocessor to register t1
+# miso:
+  # mfc0 $t2, $t0 # copies register zero from the coprocessor to register t1
               # look at mfc0 in the hex file
   # beq  $t1, $t0, finish
   # # addi $t1, $zero, 0x16

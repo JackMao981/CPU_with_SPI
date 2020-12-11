@@ -21,7 +21,7 @@ module SPI_REGFILE
     case (ctrl)
       `MOSI: begin // MTC0
         rf[addr] = wd; // writes data from cpu to spi register
-        rf[`REG_MOSI] = wd;
+        // rf[`REG_MOSI] = wd;
         spi_out = 0;
         rf[`REG_DV] = 1'b0;
       end
@@ -46,7 +46,7 @@ module SPI_REGFILE
   //MISO STORE:    5
 
   // the data and its signal  (MOSI)
-  // reg transmit_ready; // set to 1 when SPI device is ready to send a new byte
+  reg transmit_ready; // set to 1 when SPI device is ready to send a new byte
   reg [`W_CPU-1:0] data_to_transmit; // 8 bit data being sent from device
   reg  data_transmit_valid; // blipped when new data is loaded and ready
 
@@ -62,13 +62,19 @@ module SPI_REGFILE
   reg [`W_CPU-1:0] MOSI_data;
   reg [`W_CPU-1:0] MISO_data;
 
-  spi SPI(rst, clk,
+  spi SPI(rst, clk, transmit_ready,
           MOSI_data, data_transmit_valid,
           MISO_data, data_in_valid,
           MISO_in, spi_clk, MOSI_out);
 
+  always @(posedge clk) begin
+    $display("transmit ready: %b", transmit_ready);
+    rf[`REG_DV] = transmit_ready;
+  end
+
+
   always @* begin
-    if (rf[`REG_MOSI] != rf[`REG_MOSI_S]) begin //might need transmit ready to prevent data override
+    if (rf[`REG_MOSI] != rf[`REG_MOSI_S] && transmit_ready) begin //might need transmit ready to prevent data override
       rf[`REG_MOSI_S] = rf[`REG_MOSI];
       MOSI_data = rf[`REG_MOSI];
       data_transmit_valid = 1'b1;
