@@ -18,6 +18,7 @@ module SPI_REGFILE
   reg [`W_CPU-1:0] rf [31:0];
 
   always @* begin
+    rf[`REG_DV] = transmit_ready;
     case (ctrl)
       `MOSI: begin // MTC0
         rf[addr] = wd; // writes data from cpu to spi register
@@ -66,13 +67,13 @@ module SPI_REGFILE
   reg [`W_CPU-1:0] MOSI_data;
   reg [`W_CPU-1:0] MISO_data;
 
-  spi SPI(rst, clk,
+  spi SPI(rst, clk, transmit_ready,
           MOSI_data, data_transmit_valid,
           MISO_data, data_in_valid,
           MISO_in, spi_clk, MOSI_out);
 
   always @* begin
-    if (rf[`REG_MOSI] != rf[`REG_MOSI_S]) begin //might need transmit ready to prevent data override
+    if (rf[`REG_MOSI] != rf[`REG_MOSI_S] && transmit_ready) begin //might need transmit ready to prevent data override
       rf[`REG_MOSI_S] = rf[`REG_MOSI];
       MOSI_data = rf[`REG_MOSI];
       data_transmit_valid = 1'b1;

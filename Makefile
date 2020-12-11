@@ -14,11 +14,11 @@ MARS=java -jar $(MARS_JAR)
 .PRECIOUS: %.data.hex %.inst.hex
 
 %.inst.hex: asm/%.asm
-	$(MARS) db mc CompactTextAtZero dump .text HexText $@ $<
+	$(MARS) a db mc CompactTextAtZero dump .text HexText $@ $<
 	touch $@
 
 %.data.hex: asm/%.asm
-	$(MARS) db mc CompactTextAtZero dump .data HexText $@ $<
+	$(MARS) a db mc CompactTextAtZero dump .data HexText $@ $<
 	touch $@
 
 cpu.bin: verilog/*.v verilog/lib/*.v
