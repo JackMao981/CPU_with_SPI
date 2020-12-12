@@ -104,6 +104,14 @@ module SPI_REGFILE
     $display("transmit ready:      %b", transmit_ready_MOSI);
     $display("data transmit valid: %b", data_transmit_valid);
     $display("mosi out:            %b", MOSI_out);
+  
+    if (MISO_in == 1'b1) begin
+      MISO_in = 1'b0;
+    end
+    else begin
+      MISO_in = 1'b1;
+    end
+    // $display ("MISO IN: %b", MISO_in);
   end
   // always @(posedge clk) begin
   //   if (MISO_in == 1'b1) begin
