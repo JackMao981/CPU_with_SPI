@@ -11,7 +11,8 @@ module spi (
   // input CPOL,
 
   // the data and its signal  (MOSI)
-  output reg transmit_ready, // set to 1 when SPI device is ready to send a new byte
+  output reg transmit_ready_MOSI, // set to 1 when SPI device is ready to send a new byte
+  output reg transmit_ready_MISO,
   input [W_Data-1:0] data_to_transmit, // 8 bit data being sent from device
   input  data_transmit_valid, // blipped when new data is loaded and ready
 
@@ -42,7 +43,7 @@ begin
   begin
     data_out_buffer <= 8'h00;
     data_transmit_valid_buffer <= 1'b0;
-    transmit_ready = 1'b1;
+    transmit_ready_MOSI = 1'b1;
   end
 
   //Delays for one clock pulse before sending data
@@ -52,7 +53,7 @@ begin
     if ( data_transmit_valid)
     begin
       data_out_buffer <= data_to_transmit;
-      transmit_ready = 1'b0;
+      transmit_ready_MOSI = 1'b0;
     end
   end
 end
@@ -69,27 +70,33 @@ begin
   begin
     MOSI_out <= 1'b0;
     MOSI_counter <= 5'b11111;
-    transmit_ready = 1'b1;
+    transmit_ready_MOSI = 1'b1;
   end
   //Sends current index bit
   else
   begin
-    if(transmit_ready) // if device is ready to send new data
+    if(transmit_ready_MOSI) // if device is ready to send new data
     begin
       MOSI_counter <= 5'b11111;
     end
     else
     begin
-      //if data being passed in is valid
-      if(data_transmit_valid_buffer)
-      begin
-        MOSI_out <= data_out_buffer[MOSI_counter];
-        MOSI_counter <= MOSI_counter - 1;
-        if (MOSI_counter == 5'b00000)
-        begin
-          transmit_ready <= 1'b1;
-        end
-      end
+//       $display("data_transmit_valid_buffer: %b", data_transmit_valid_buffer);
+//       //if data being passed in is valid
+//       if(data_transmit_valid_buffer)
+//       begin
+//         MOSI_out <= data_out_buffer[MOSI_counter];
+//         $display("REG MOSI OUT: %b", MOSI_out);
+//         MOSI_counter <= MOSI_counter - 1;
+//         $display("MOSI counter  = %x",MOSI_counter);
+//         if (MOSI_counter == 0)
+//         begin
+//           transmit_ready_MOSI <= 1'b1;
+//         end
+//         else begin
+//           transmit_ready_MOSI <= 1'b0;
+//         end
+//       end
     end
   end
 end
@@ -104,22 +111,22 @@ begin
     data_in <= 1'd0;
     data_in_valid <= 1'b0;
     MISO_counter <= 5'b11111;
-    transmit_ready = 1'b1; // maybe replace with receive ready
+    transmit_ready_MISO = 1'b1; // maybe replace with receive ready
   end
 
   else
   begin
-    if (transmit_ready) // keep an eye on this
+    if (transmit_ready_MISO) // keep an eye on this
     begin
-      $display("transmit ready  = %x",transmit_ready);
+      // $display("transmit ready  = %x",transmit_ready);
       MISO_counter <= 5'b11111;
-      transmit_ready = 1'b0;
+      transmit_ready_MISO = 1'b0;
     end
     else
     begin
       data_in[MISO_counter] <= MISO_in;
       MISO_counter <= MISO_counter - 1;
-      $display("counter  = %x",MISO_counter);
+      // $display("counter  = %x",MISO_counter);
       if (MISO_counter == 0) begin
         data_in_valid = 1'b1;
       end

@@ -18,29 +18,32 @@ module SPI_REGFILE
   reg [`W_CPU-1:0] rf [31:0];
 
   always @* begin
-    rf[`REG_DV] = transmit_ready;
+    rf[`REG_DV_MOSI] = transmit_ready_MOSI;
+    rf[`REG_DV_MISO] = transmit_ready_MISO;
     case (ctrl)
       `MOSI: begin // MTC0
         rf[addr] = wd; // writes data from cpu to spi register
+        $display("addr: %x", rf[addr]);
         rf[`REG_MOSI] = wd;
-        $display("MOSI  = %x",rf[`REG_MOSI]);
+        // $display("MOSI  = %x",rf[`REG_MOSI]);
         spi_out = 0;
-        rf[`REG_DV] = 1'b0;
+        rf[`REG_DV_MOSI] = 1'b0;
       end
       `MISO: begin // MFC0
-        $display("data_in_valid  = %x",data_in_valid);
+        // $display("data_in_valid  = %x",data_in_valid);
         if(data_in_valid == 1'b1) begin
           rf[`REG_MISO] = MISO_data;
-          $display("MISO  = %x",rf[`REG_MISO]);
+          // $display("MISO  = %x",rf[`REG_MISO]);
           spi_out = rf[`REG_MISO];
-          rf[`REG_DV] = 1'b1;
+          rf[`REG_DV_MISO] = 1'b1;
         end
         else begin
-          $display("NO  = %x",0);
-          rf[`REG_DV] = 1'b0;
+          // $display("NO  = %x",0);
+          rf[`REG_DV_MOSI] = 1'b0;
+          rf[`REG_DV_MISO] = 1'b0;
         end
       end
-      default: begin rf[`REG_DV] = 1'b0; spi_out = 0; end
+      default: begin rf[`REG_DV_MOSI] = 1'b0; rf[`REG_DV_MISO] = 1'b0; spi_out = 0; end
     endcase
   end
 
@@ -67,28 +70,40 @@ module SPI_REGFILE
   reg [`W_CPU-1:0] MOSI_data;
   reg [`W_CPU-1:0] MISO_data;
 
-  spi SPI(rst, clk, transmit_ready,
+  spi SPI(rst, clk,
+          transmit_ready_MOSI, transmit_ready_MISO,
           MOSI_data, data_transmit_valid,
           MISO_data, data_in_valid,
           MISO_in, spi_clk, MOSI_out);
 
   always @* begin
-    if (rf[`REG_MOSI] != rf[`REG_MOSI_S] && transmit_ready) begin //might need transmit ready to prevent data override
+    if ((rf[`REG_MOSI] != rf[`REG_MOSI_S]) && (transmit_ready_MOSI)) begin //might need transmit ready to prevent data override
       rf[`REG_MOSI_S] = rf[`REG_MOSI];
-      MOSI_data = rf[`REG_MOSI];
+      MOSI_data = rf[`REG_MOSI_S];
       data_transmit_valid = 1'b1;
+      $display("NEW MOSI DATA IS LOADED");
+    end
+    else begin
+      data_transmit_valid = 1'b0;
     end
   end
 
   always @(posedge clk) begin
-    if (MISO_in == 1'b1) begin
-      MISO_in = 1'b1;
-    end
-    else begin
-      MISO_in = 1'b1;
-    end
-    // $display ("MISO IN: %b", MISO_in);
+    $display("REG_MOSI:            %b", rf[`REG_MOSI]);
+    $display("REG_MOSI_S:          %b", rf[`REG_MOSI_S]);
+    $display("transmit ready:      %b", transmit_ready_MOSI);
+    $display("data transmit valid: %b", data_transmit_valid);
+    $display("mosi out:            %b", MOSI_out);
   end
+  // always @(posedge clk) begin
+  //   if (MISO_in == 1'b1) begin
+  //     MISO_in = 1'b0;
+  //   end
+  //   else begin
+  //     MISO_in = 1'b1;
+  //   end
+  //   // $display ("MISO IN: %b", MISO_in);
+  // end
 
 
 
