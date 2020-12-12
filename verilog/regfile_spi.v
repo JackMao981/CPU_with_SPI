@@ -20,28 +20,33 @@ module SPI_REGFILE
   always @* begin
     rf[`REG_DV_MOSI] = transmit_ready_MOSI;
     rf[`REG_DV_MISO] = transmit_ready_MISO;
+
+    $display("ctrl: %b", ctrl);
     case (ctrl)
       `MOSI: begin // MTC0
         rf[addr] = wd; // writes data from cpu to spi register
         $display("addr: %x", rf[addr]);
         rf[`REG_MOSI] = wd;
+        $display("REG_MOSI: %b", rf[`REG_MOSI]);
         // $display("MOSI  = %x",rf[`REG_MOSI]);
         spi_out = 0;
         rf[`REG_DV_MOSI] = 1'b0;
       end
       `MISO: begin // MFC0
         // $display("data_in_valid  = %x",data_in_valid);
-        if(data_in_valid == 1'b1) begin
-          rf[`REG_MISO] = MISO_data;
-          // $display("MISO  = %x",rf[`REG_MISO]);
-          spi_out = rf[`REG_MISO];
+        // if(data_in_valid == 1'b1) begin
+          spi_out = rf[addr];
           rf[`REG_DV_MISO] = 1'b1;
-        end
-        else begin
-          // $display("NO  = %x",0);
-          rf[`REG_DV_MOSI] = 1'b0;
-          rf[`REG_DV_MISO] = 1'b0;
-        end
+          rf[`REG_MISO] = MISO_data;
+          // // $display("MISO  = %x",rf[`REG_MISO]);
+          // spi_out = rf[`REG_MISO];
+          // rf[`REG_DV_MISO] = 1'b1;
+        // end
+        // else begin
+        //   // $display("NO  = %x",0);
+        //   rf[`REG_DV_MOSI] = 1'b0;
+        //   rf[`REG_DV_MISO] = 1'b0;
+        // end
       end
       default: begin rf[`REG_DV_MOSI] = 1'b0; rf[`REG_DV_MISO] = 1'b0; spi_out = 0; end
     endcase
@@ -76,16 +81,21 @@ module SPI_REGFILE
           MISO_data, data_in_valid,
           MISO_in, spi_clk, MOSI_out);
 
+
   always @* begin
     if ((rf[`REG_MOSI] != rf[`REG_MOSI_S]) && (transmit_ready_MOSI)) begin //might need transmit ready to prevent data override
       rf[`REG_MOSI_S] = rf[`REG_MOSI];
       MOSI_data = rf[`REG_MOSI_S];
+      rf[`REG_DV_MOSI] = transmit_ready_MOSI;
       data_transmit_valid = 1'b1;
       $display("NEW MOSI DATA IS LOADED");
     end
-    else begin
-      data_transmit_valid = 1'b0;
-    end
+    // if (rst) begin
+    //   data_transmit_valid = 1'b1;
+    // end
+    // else begin
+    //   data_transmit_valid = 1'b1;
+    // end
   end
 
   always @(posedge clk) begin

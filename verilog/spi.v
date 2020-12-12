@@ -14,7 +14,7 @@ module spi (
   output reg transmit_ready_MOSI, // set to 1 when SPI device is ready to send a new byte
   output reg transmit_ready_MISO,
   input [W_Data-1:0] data_to_transmit, // 8 bit data being sent from device
-  input  data_transmit_valid, // blipped when new data is loaded and ready
+  input data_transmit_valid, // blipped when new data is loaded and ready
 
   // (MISO)
   output reg [W_Data-1:0] data_in, // maybe reg?
@@ -81,22 +81,22 @@ begin
     end
     else
     begin
-//       $display("data_transmit_valid_buffer: %b", data_transmit_valid_buffer);
-//       //if data being passed in is valid
-//       if(data_transmit_valid_buffer)
-//       begin
-//         MOSI_out <= data_out_buffer[MOSI_counter];
-//         $display("REG MOSI OUT: %b", MOSI_out);
-//         MOSI_counter <= MOSI_counter - 1;
-//         $display("MOSI counter  = %x",MOSI_counter);
-//         if (MOSI_counter == 0)
-//         begin
-//           transmit_ready_MOSI <= 1'b1;
-//         end
-//         else begin
-//           transmit_ready_MOSI <= 1'b0;
-//         end
-//       end
+      $display("data_transmit_valid_buffer: %b", data_transmit_valid_buffer);
+      //if data being passed in is valid
+      if(data_transmit_valid_buffer)
+      begin
+        MOSI_out <= data_out_buffer[MOSI_counter];
+        $display("REG MOSI OUT: %b", MOSI_out);
+        MOSI_counter <= MOSI_counter - 1;
+        $display("MOSI counter  = %x",MOSI_counter);
+        if (MOSI_counter == 0)
+        begin
+          transmit_ready_MOSI <= 1'b1;
+        end
+        else begin
+          transmit_ready_MOSI <= 1'b0;
+        end
+      end
     end
   end
 end

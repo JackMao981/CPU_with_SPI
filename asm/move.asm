@@ -1,11 +1,12 @@
 addi $t1, $zero, 0x16
 # addi $t1, $zero, 0x0bba
 
-mosi:
-  mtc0 $t1, $t0
-  mfc0 $t3, 32
+mtc0 $t1, $t0
+# mfc0 $t2, $t0
+miso:
+  mfc0 $t3, 31
   bne  $t3, $zero, finish
-  j mosi
+  j miso
 
 # miso:
 #   mfc0 $t2, $t0 # copies register zero from the coprocessor to register t1
@@ -19,7 +20,7 @@ mosi:
 
 
 finish:
-  add $a0,$zero,$t2
+  add $a0,$zero,$t3
   addi $v0,$zero,1
   SYSCALL
   addi $v0,$zero,10
