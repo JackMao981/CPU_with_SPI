@@ -82,7 +82,7 @@ module SPI_REGFILE
 
   always @(posedge clk) begin
     if (MISO_in == 1'b1) begin
-      MISO_in = 1'b0;
+      MISO_in = 1'b1;
     end
     else begin
       MISO_in = 1'b1;

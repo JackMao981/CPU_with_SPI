@@ -81,7 +81,7 @@ begin
     else
     begin
       //if data being passed in is valid
-      if( data_transmit_valid)
+      if(data_transmit_valid_buffer)
       begin
         MOSI_out <= data_out_buffer[MOSI_counter];
         MOSI_counter <= MOSI_counter - 1;
