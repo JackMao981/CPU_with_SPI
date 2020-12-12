@@ -5,8 +5,8 @@ mtc0 $t1, $t0
 # mfc0 $t2, $t0
 miso:
   mfc0 $t3, 31
-  bne  $t3, $zero, finish
-  j miso
+  # bne  $t3, $zero, finish
+  # j miso
 
 # miso:
 #   mfc0 $t2, $t0 # copies register zero from the coprocessor to register t1
