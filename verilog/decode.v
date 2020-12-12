@@ -210,7 +210,7 @@ module DECODE
               imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
               alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_SPI;
               pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
-              spi_ctrl = `MOSI;
+              spi_ctrl = `MT;
             end
             `RS_MFC0:
             begin
@@ -218,7 +218,7 @@ module DECODE
               imm_ext = `IMM_ZERO_EXT; mem_cmd = `MEM_NOP;
               alu_src = `ALU_SRC_REG;  reg_src = `REG_SRC_SPI;
               pc_src  = `PC_SRC_NEXT;  alu_op  = inst[`FLD_FUNCT];
-              spi_ctrl = `MISO;
+              spi_ctrl = `MF;
             end
           endcase
         end

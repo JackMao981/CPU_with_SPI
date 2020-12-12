@@ -1,5 +1,67 @@
 `include "lib/opcodes.v"
 
+module miso (
+  // Same inputs from CPU
+  input rst,
+  input clk,
+
+  // clock phase and polarity ignoring for now for simplification
+  // currently looking at rising edge
+  // input CPHA,
+  // input CPOL,
+
+  // the data and its signal  (MOSI)
+  output reg transmit_ready, // set to 1 when SPI device is ready to send a new byte
+
+  // (MISO)
+  output reg [W_Data-1:0] data_in, // maybe reg?
+  output reg data_in_valid, // goes high once data has been fully received
+
+  //SPI in/output
+  input MISO_in,
+  output spi_clk);
+
+  parameter W_Data = `W_CPU;
+  parameter W_Counter = 5;
+
+  assign spi_clk = clk;
+
+  // MISO
+  reg [W_Counter-1:0] MISO_counter;
+  always @(posedge clk or negedge rst)
+  begin
+    if (rst)
+    begin
+      $display("rst  = %x",rst);
+      data_in <= 1'd0;
+      data_in_valid <= 1'b0;
+      MISO_counter <= 5'b11111;
+      transmit_ready = 1'b1; // maybe replace with receive ready
+    end
+
+    else
+    begin
+      if (transmit_ready) // keep an eye on this
+      begin
+        $display("transmit ready  = %x",transmit_ready);
+        MISO_counter <= 5'b11111;
+        transmit_ready = 1'b0;
+      end
+      else
+      begin
+        data_in[MISO_counter] <= MISO_in;
+        MISO_counter <= MISO_counter - 1;
+        $display("counter  = %x",MISO_counter);
+        if (MISO_counter == 0) begin
+          data_in_valid = 1'b1;
+        end
+      end
+    end
+  end
+endmodule
+
+
+
 module spi (
   // Same inputs from CPU
   input rst,
@@ -94,42 +156,8 @@ begin
   end
 end
 
-// MISO
-reg [W_Counter-1:0] MISO_counter;
-always @(posedge clk or negedge rst)
-begin
-  if (rst)
-  begin
-    $display("rst  = %x",rst);
-    data_in <= 1'd0;
-    data_in_valid <= 1'b0;
-    MISO_counter <= 5'b11111;
-    transmit_ready = 1'b1; // maybe replace with receive ready
-  end
-
-  else
-  begin
-    if (transmit_ready) // keep an eye on this
-    begin
-      $display("transmit ready  = %x",transmit_ready);
-      MISO_counter <= 5'b11111;
-      transmit_ready = 1'b0;
-    end
-    else
-    begin
-      data_in[MISO_counter] <= MISO_in;
-      MISO_counter <= MISO_counter - 1;
-      $display("counter  = %x",MISO_counter);
-      if (MISO_counter == 0) begin
-        data_in_valid = 1'b1;
-      end
-    end
-  end
-end
-
-// SS??????
-
 endmodule
+
 
 /*
 PSUEDOCODE

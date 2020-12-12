@@ -12,77 +12,85 @@ module SPI_REGFILE
   input      [`W_REG-1:0] addr,
   input      [`W_CPU-1:0] wd,
   input      [`W_SPI_CTRL-1:0] ctrl,
-  output reg [`W_CPU-1:0] spi_out);
+  output reg [`W_CPU-1:0] data_out);
 
   /** Storage Element **/
   reg [`W_CPU-1:0] rf [31:0];
 
   always @* begin
-    rf[`REG_DV] = transmit_ready;
     case (ctrl)
-      `MOSI: begin // MTC0
+      `MT: begin // MTC0
         rf[addr] = wd; // writes data from cpu to spi register
-        rf[`REG_MOSI] = wd;
-        $display("MOSI  = %x",rf[`REG_MOSI]);
-        spi_out = 0;
-        rf[`REG_DV] = 1'b0;
+        data_out = 0;
+        // rf[`REG_DV] = 1'b0;
       end
-      `MISO: begin // MFC0
-        $display("data_in_valid  = %x",data_in_valid);
-        if(data_in_valid == 1'b1) begin
-          rf[`REG_MISO] = MISO_data;
-          $display("MISO  = %x",rf[`REG_MISO]);
-          spi_out = rf[`REG_MISO];
-          rf[`REG_DV] = 1'b1;
+      `MF: begin // MFC0
+        // Handles if mosi register is overwritten
+        if(addr == `REG_MISO) begin
+          if(miso_dv == 1'b1) begin
+            rf[`REG_MISO] = MISO_data;
+            data_out = rf[`REG_MISO];
+            rf[`REG_MISO_DV] = 1'b1;
+          end
+          else begin
+            rf[`REG_MISO_DV] = 1'b0;
+          end
         end
+        // Handles general move from case
         else begin
-          $display("NO  = %x",0);
-          rf[`REG_DV] = 1'b0;
+          data_out = rf[addr];
         end
+
       end
-      default: begin rf[`REG_DV] = 1'b0; spi_out = 0; end
+      default: begin data_out = 0; end
     endcase
   end
 
-  //ACTUAL SPI STUFF BELOW THIS COMMENT
-  //MOSI REGISTER: 2
-  //MOSI STORE:    3
-  //MISO REGISTER: 4
-  //MISO STORE:    5
-
-  // the data and its signal  (MOSI)
-  // reg transmit_ready; // set to 1 when SPI device is ready to send a new byte
-  reg [`W_CPU-1:0] data_to_transmit; // 8 bit data being sent from device
-  reg  data_transmit_valid; // blipped when new data is loaded and ready
-
   // (MISO)
-  // reg [`W_CPU-1:0] data_in; // maybe reg?
-  reg data_in_valid; // goes high once data has been fully received
+  reg miso_dv; // goes high once data has been fully received
 
   //SPI in/output
   reg MISO_in;
   wire spi_clk;
-  reg MOSI_out; // the bit that you send out
 
-  reg [`W_CPU-1:0] MOSI_data;
   reg [`W_CPU-1:0] MISO_data;
 
-  spi SPI(rst, clk, transmit_ready,
-          MOSI_data, data_transmit_valid,
-          MISO_data, data_in_valid,
-          MISO_in, spi_clk, MOSI_out);
+  miso MISO(rst, clk, transmit_ready,
+            MISO_data, miso_dv,
+            MISO_in, spi_clk);
 
-  always @* begin
-    if (rf[`REG_MOSI] != rf[`REG_MOSI_S] && transmit_ready) begin //might need transmit ready to prevent data override
-      rf[`REG_MOSI_S] = rf[`REG_MOSI];
-      MOSI_data = rf[`REG_MOSI];
-      data_transmit_valid = 1'b1;
-    end
-  end
+  // reg [`W_CPU-1:0] data_to_transmit; // 8 bit data being sent from device
+  // reg  data_transmit_valid; // blipped when new data is loaded and ready
+  //
+  // // (MISO)
+  // // reg [`W_CPU-1:0] data_in; // maybe reg?
+  // reg data_in_valid; // goes high once data has been fully received
+  //
+  // //SPI in/output
+  // reg MISO_in;
+  // wire spi_clk;
+  // reg MOSI_out; // the bit that you send out
+  //
+  // reg [`W_CPU-1:0] MOSI_data;
+  // reg [`W_CPU-1:0] MISO_data;
+  //
+  // miso MISO(rst, clk, transmit_ready,
+  //         MOSI_data, data_transmit_valid,
+  //         MISO_data, data_in_valid,
+  //         MISO_in, spi_clk, MOSI_out);
+  //
+  //
+  // always @* begin
+  //   if (rf[`REG_MOSI] != rf[`REG_MOSI_S] && transmit_ready) begin //might need transmit ready to prevent data override
+  //     rf[`REG_MOSI_S] = rf[`REG_MOSI];
+  //     MOSI_data = rf[`REG_MOSI];
+  //     data_transmit_valid = 1'b1;
+  //   end
+  // end
 
   always @(posedge clk) begin
     if (MISO_in == 1'b1) begin
-      MISO_in = 1'b1;
+      MISO_in = 1'b0;
     end
     else begin
       MISO_in = 1'b1;

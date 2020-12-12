@@ -33,8 +33,8 @@
 
   // SPI Control Vals
   `define SPI_NOP      `W_SPI_CTRL'd0
-  `define MOSI         `W_SPI_CTRL'd1
-  `define MISO         `W_SPI_CTRL'd2
+  `define MT         `W_SPI_CTRL'd1
+  `define MF         `W_SPI_CTRL'd2
 
   // Lots of MUX and Enable Defines
   `define WREN         `W_EN'b1
@@ -96,11 +96,13 @@
   `define REG_RA `W_REG'd31
 
   // SPI Registers
-  `define REG_DV     `W_REG'd0 // says when miso data has been loaded
+   // says when miso data has been loaded
   `define REG_MOSI   `W_REG'd2
   `define REG_MOSI_S `W_REG'd3
-  `define REG_MISO   `W_REG'd4
-  `define REG_MISO_s `W_REG'd5
+
+  //MISO
+  `define REG_MISO    `W_REG'd8
+  `define REG_MISO_DV `W_REG'd9
 
   // FUNCT Codes
   `define F_ADD     `W_OPCODE'b100000
