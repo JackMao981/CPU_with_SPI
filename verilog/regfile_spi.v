@@ -35,18 +35,10 @@ module SPI_REGFILE
       `MISO: begin // MFC0
         // $display("data_in_valid  = %x",data_in_valid);
         // if(data_in_valid == 1'b1) begin
-          spi_out = rf[addr];
-          rf[`REG_DV_MISO] = 1'b1;
-          rf[`REG_MISO] = MISO_data;
-          // // $display("MISO  = %x",rf[`REG_MISO]);
-          // spi_out = rf[`REG_MISO];
-          // rf[`REG_DV_MISO] = 1'b1;
-
           rf[`REG_MISO] = MISO_data;
           $display("MISO  = %x",rf[`REG_MISO]);
           spi_out = rf[`REG_MISO];
           rf[`REG_DV_MISO] = 1'b1;
-
         // end
         // else begin
         //   // $display("NO  = %x",0);
@@ -87,32 +79,6 @@ module SPI_REGFILE
           MISO_data, data_in_valid,
           MISO_in, spi_clk, MOSI_out);
 
-<<<<<<< Updated upstream
-
-  always @* begin
-    if ((rf[`REG_MOSI] != rf[`REG_MOSI_S]) && (transmit_ready_MOSI)) begin //might need transmit ready to prevent data override
-      rf[`REG_MOSI_S] = rf[`REG_MOSI];
-      MOSI_data = rf[`REG_MOSI_S];
-      rf[`REG_DV_MOSI] = transmit_ready_MOSI;
-      data_transmit_valid = 1'b1;
-      $display("NEW MOSI DATA IS LOADED");
-    end
-    // if (rst) begin
-    //   data_transmit_valid = 1'b1;
-    // end
-    // else begin
-    //   data_transmit_valid = 1'b1;
-    // end
-  end
-
-  always @(posedge clk) begin
-    $display("REG_MOSI:            %b", rf[`REG_MOSI]);
-    $display("REG_MOSI_S:          %b", rf[`REG_MOSI_S]);
-    $display("transmit ready:      %b", transmit_ready_MOSI);
-    $display("data transmit valid: %b", data_transmit_valid);
-    $display("mosi out:            %b", MOSI_out);
-  end
-=======
   // always @* begin
   //   if ((rf[`REG_MOSI] != rf[`REG_MOSI_S]) && (transmit_ready_MOSI)) begin //might need transmit ready to prevent data override
   //     rf[`REG_MOSI_S] = rf[`REG_MOSI];
@@ -132,7 +98,6 @@ module SPI_REGFILE
   //   $display("data transmit valid: %b", data_transmit_valid);
   //   $display("mosi out:            %b", MOSI_out);
   // end
->>>>>>> Stashed changes
   // always @(posedge clk) begin
   //   if (MISO_in == 1'b1) begin
   //     MISO_in = 1'b0;
