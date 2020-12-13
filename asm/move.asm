@@ -9,12 +9,19 @@ addi $t1, $zero, 0x16
 
 # MISO:    $t0
 # MISO_DV: $t1
-miso:
+miso1:
   mfc0 $t2, $t0
+  mfc0 $t3, $t1
+  bne  $t3, $zero, miso2
+  # # addi $t1, $zero, 0x16
+  j miso1
+
+miso2:
+  mfc0 $t4, $t0
   mfc0 $t3, $t1
   bne  $t3, $zero, finish
   # # addi $t1, $zero, 0x16
-  j miso
+  j miso2
 
 # mfc0 $t1, 2
 

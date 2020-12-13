@@ -49,6 +49,7 @@ module SPI_REGFILE
   /*---------------
   ------MISO-------
   ---------------*/
+  // Generates bits to read on miso
   always @(posedge clk) begin
     if (MISO_in == 1'b1) begin
       MISO_in = 1'b0;
@@ -59,14 +60,11 @@ module SPI_REGFILE
   end
 
   reg miso_dv; // goes high once data has been fully received
+  reg MISO_in; // MISO bits being received from external device
+  wire spi_clk;// data transfer clock
+  reg [`W_CPU-1:0] MISO_data; // loaded miso data
+  reg receive_ready; // notes when it's ready to receive more data
 
-  //SPI in/output
-  reg MISO_in;
-  wire spi_clk;
-
-  reg [`W_CPU-1:0] MISO_data;
-
-  reg receive_ready;
   miso MISO(rst, clk, receive_ready,
             MISO_data, miso_dv,
             MISO_in, spi_clk);
