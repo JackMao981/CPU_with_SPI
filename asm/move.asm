@@ -1,12 +1,18 @@
 addi $t1, $zero, 0x16
 # addi $t1, $zero, 0x0bba
-#
+
+# MOSI TEST
+# MOSI: $t2
+# MOSI DV: $t3
 # mosi:
-# mtc0 $t1, $t0
-# mfc0 $t3, $zero
+# mtc0 $t1, $t2
+# mfc0 $t3, $t3
 # bne  $t3, $zero, finish
 # j mosi
 
+
+
+# MISO TEST
 # MISO:    $t0
 # MISO_DV: $t1
 miso1:
@@ -23,7 +29,6 @@ miso2:
   # # addi $t1, $zero, 0x16
   j miso2
 
-# mfc0 $t1, 2
 
 
 finish:

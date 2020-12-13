@@ -27,7 +27,6 @@ module miso (
   begin
     if (rst)
     begin
-      $display("rst  = %x",rst);
       data_in <= 1'd0;
       data_in_valid <= 1'b0;
       MISO_counter <= 5'b11111;
@@ -38,7 +37,6 @@ module miso (
     begin
       if (receive_ready) // keep an eye on this
       begin
-        $display("transmit ready  = %x",receive_ready);
         MISO_counter <= 5'b11111;
         receive_ready = 1'b0;
       end
@@ -46,7 +44,6 @@ module miso (
       begin
         data_in[MISO_counter] <= MISO_in;
         MISO_counter <= MISO_counter - 1;
-        $display("counter  = %x",MISO_counter);
         if (MISO_counter == 0) begin
           data_in_valid = 1'b1;
         end
@@ -63,10 +60,9 @@ module mosi (
   input clk,
 
   // the data and its signal  (MOSI)
-  output reg transmit_ready, // set to 1 when SPI device is ready to send a new byte
+  output reg transmit_ready, // set to 1 when SPI device is ready to send new message
   input [W_Data-1:0] data_to_transmit, // 8 bit data being sent from device
   input  data_transmit_valid, // blipped when new data is loaded and ready
-
 
   //SPI in/output
   output spi_clk,
@@ -75,71 +71,47 @@ module mosi (
   parameter W_Data = `W_CPU;
   parameter W_Counter = 5;
 
-//Loads Mosi Data
-//stores data being sent to prevent data loss from glitches
-reg [W_Data-1:0] data_out_buffer;
-reg data_transmit_valid_buffer;
-// reg transmit_ready; // can set transmit ready to input
-assign spi_clk = clk;
+  // reg transmit_ready; // can set transmit ready to input
+  assign spi_clk = clk;
 
-always @(posedge clk or negedge rst)
-begin
-  //Catches reset case
-  if (rst)
-  begin
-    data_out_buffer <= 8'h00;
-    data_transmit_valid_buffer <= 1'b0;
-    transmit_ready = 1'b1;
-  end
+  //Keeps track of current bit being sent
+  reg [W_Counter-1:0] MOSI_counter;
 
-  //Delays for one clock pulse before sending data
-  else
+  always @(posedge clk or negedge rst)
   begin
-     data_transmit_valid_buffer <=  data_transmit_valid;
-    if ( data_transmit_valid)
+    $display("MOSI COUNTER: %d", MOSI_counter);
+    //Catches reset case
+    if (rst)
     begin
-      data_out_buffer <= data_to_transmit;
-      transmit_ready = 1'b0;
-    end
-  end
-end
-
-
-//Creates MOSI_data
-//Keeps track of current bit being sent
-reg [W_Counter-1:0] MOSI_counter;
-
-always @(posedge clk or negedge rst)
-begin
-  //Catches reset case
-  if (rst)
-  begin
-    MOSI_out <= 1'b0;
-    MOSI_counter <= 5'b11111;
-    transmit_ready = 1'b1;
-  end
-  //Sends current index bit
-  else
-  begin
-    if(transmit_ready) // if device is ready to send new data
-    begin
+      MOSI_out <= 1'b0;
       MOSI_counter <= 5'b11111;
+      transmit_ready = 1'b1;
     end
+    //Sends current index bit
     else
     begin
-      //if data being passed in is valid
-      if(data_transmit_valid_buffer)
-      begin
-        MOSI_out <= data_out_buffer[MOSI_counter];
-        MOSI_counter <= MOSI_counter - 1;
-        if (MOSI_counter == 5'b00000)
+      // if(transmit_ready) // if device is ready to send new data
+      // begin
+      //   MOSI_counter <= 5'b11111;
+      // end
+      // else
+      // begin
+        //if data being passed in is valid
+        $display("DATA_TV: %b", data_transmit_valid);
+        if(data_transmit_valid)
         begin
-          transmit_ready <= 1'b1;
-        end
+          MOSI_out <= data_to_transmit[MOSI_counter];
+          MOSI_counter <= MOSI_counter - 1;
+          if (MOSI_counter == 0) begin
+            transmit_ready <= 1'b1;
+          end
+          else begin
+            transmit_ready <= 1'b0;
+          end
+        // end
       end
     end
   end
-end
 
 endmodule
 

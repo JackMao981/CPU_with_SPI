@@ -96,9 +96,9 @@
   `define REG_RA `W_REG'd31
 
   // SPI Registers
-   // says when miso data has been loaded
-  `define REG_MOSI   `W_REG'd2
-  `define REG_MOSI_S `W_REG'd3
+  //MOSI
+  `define REG_MOSI   `W_REG'd10
+  `define REG_MOSI_TR `W_REG'd11
 
   //MISO
   `define REG_MISO    `W_REG'd8
