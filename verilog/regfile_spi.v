@@ -46,7 +46,18 @@ module SPI_REGFILE
     endcase
   end
 
-  // (MISO)
+  /*---------------
+  ------MISO-------
+  ---------------*/
+  always @(posedge clk) begin
+    if (MISO_in == 1'b1) begin
+      MISO_in = 1'b0;
+    end
+    else begin
+      MISO_in = 1'b1;
+    end
+  end
+
   reg miso_dv; // goes high once data has been fully received
 
   //SPI in/output
@@ -55,7 +66,8 @@ module SPI_REGFILE
 
   reg [`W_CPU-1:0] MISO_data;
 
-  miso MISO(rst, clk, transmit_ready,
+  reg receive_ready;
+  miso MISO(rst, clk, receive_ready,
             MISO_data, miso_dv,
             MISO_in, spi_clk);
 
@@ -87,16 +99,6 @@ module SPI_REGFILE
   //     data_transmit_valid = 1'b1;
   //   end
   // end
-
-  always @(posedge clk) begin
-    if (MISO_in == 1'b1) begin
-      MISO_in = 1'b0;
-    end
-    else begin
-      MISO_in = 1'b1;
-    end
-    // $display ("MISO IN: %b", MISO_in);
-  end
 
 
 

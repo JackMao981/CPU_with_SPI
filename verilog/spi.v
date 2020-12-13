@@ -5,16 +5,11 @@ module miso (
   input rst,
   input clk,
 
-  // clock phase and polarity ignoring for now for simplification
-  // currently looking at rising edge
-  // input CPHA,
-  // input CPOL,
-
   // the data and its signal  (MOSI)
-  output reg transmit_ready, // set to 1 when SPI device is ready to send a new byte
+  output reg receive_ready, // set to 1 when SPI device is ready to send a new byte
 
   // (MISO)
-  output reg [W_Data-1:0] data_in, // maybe reg?
+  output reg [W_Data-1:0] data_in,
   output reg data_in_valid, // goes high once data has been fully received
 
   //SPI in/output
@@ -36,16 +31,16 @@ module miso (
       data_in <= 1'd0;
       data_in_valid <= 1'b0;
       MISO_counter <= 5'b11111;
-      transmit_ready = 1'b1; // maybe replace with receive ready
+      receive_ready = 1'b1; // maybe replace with receive ready
     end
 
     else
     begin
-      if (transmit_ready) // keep an eye on this
+      if (receive_ready) // keep an eye on this
       begin
-        $display("transmit ready  = %x",transmit_ready);
+        $display("transmit ready  = %x",receive_ready);
         MISO_counter <= 5'b11111;
-        transmit_ready = 1'b0;
+        receive_ready = 1'b0;
       end
       else
       begin
@@ -62,30 +57,20 @@ endmodule
 
 
 
-module spi (
+module mosi (
   // Same inputs from CPU
   input rst,
   input clk,
-
-  // clock phase and polarity ignoring for now for simplification
-  // currently looking at rising edge
-  // input CPHA,
-  // input CPOL,
 
   // the data and its signal  (MOSI)
   output reg transmit_ready, // set to 1 when SPI device is ready to send a new byte
   input [W_Data-1:0] data_to_transmit, // 8 bit data being sent from device
   input  data_transmit_valid, // blipped when new data is loaded and ready
 
-  // (MISO)
-  output reg [W_Data-1:0] data_in, // maybe reg?
-  output reg data_in_valid, // goes high once data has been fully received
 
   //SPI in/output
-  input MISO_in,
   output spi_clk,
-  output reg MOSI_out // the bit that you send out
-  ); //CHECK THIS LATER
+  output reg MOSI_out); //CHECK THIS LATER
 
   parameter W_Data = `W_CPU;
   parameter W_Counter = 5;
