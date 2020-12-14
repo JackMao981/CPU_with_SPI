@@ -18,30 +18,22 @@ module SPI_REGFILE
   reg [`W_CPU-1:0] rf [31:0];
 
   always @* begin
+    if(transmit_ready) begin
+      rf[`REG_MOSI_TR] = 1'b1;
+    end
+    else begin
+      rf[`REG_MOSI_TR] = 1'b0;
+    end
+
     case (ctrl)
       `MT: begin // MTC0
         rf[addr] = wd; // writes data from cpu to spi register
         data_out = 0; // no data is written back to CPU
 
-        // if(addr == `REG_MOSI) begin // checks to make sure
-        //
-        // end
-        // if(addr == `REG_MOSI_S) begin // ensures reg_mosi store cant be overwritten
-        //
-        // end
-        // else begin
-        //
-        // end
-
-        MOSI_data = rf[`REG_MOSI_S];
-        rf[`REG_MOSI_TR] = transmit_ready;
-
-        if((rf[`REG_MOSI] !== rf[`REG_MOSI_S]) && transmit_ready) begin
-          $display("HUH? WD: %b", wd);
-          $display("HUH? REG MOSI: %b", rf[`REG_MOSI]);
-          $display("HUH? REG MOSI S: %b", rf[`REG_MOSI_S]);
-          $display("HUH?: %b", (rf[`REG_MOSI] !== rf[`REG_MOSI_S]));
-          rf[`REG_MOSI_S] = rf[`REG_MOSI];
+        if(rf[`REG_MOSI_S] == 1 && transmit_ready) begin
+          #2
+          MOSI_data = rf[`REG_MOSI];
+          rf[`REG_MOSI_S] = 1'b0;
           MOSI_ready = 1'b1;
         end
         else begin
@@ -75,9 +67,11 @@ module SPI_REGFILE
 
   always @(posedge clk) begin
     MOSI_out_check = {MOSI_out_check[30:0], MOSI_out};
+    #2
+    $display("WD: %b", wd);
     $display("TRANS READY:  %b", transmit_ready);
     $display("MOSI READY:   %b", MOSI_ready);
-    $display("MOSI TR:      %h", rf[`REG_MOSI_TR]);
+    $display("MOSI TR:      %b", rf[`REG_MOSI_TR]);
     $display("REG MOSI:     %b", rf[`REG_MOSI]);
     $display("REG MOSI S:   %b", rf[`REG_MOSI_S]);
     $display("MOSI OUT:     %b", MOSI_out);

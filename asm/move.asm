@@ -3,9 +3,13 @@ addi $t1, $zero, 0x00000aaa
 
 # MOSI TEST
 # MOSI: $t2
+# MOSI S: $t3
 # MOSI DV: $t4
-mosi:
 mtc0 $t1, $t2
+
+li $t2, 1
+mtc0 $t2, $t3
+mosi:
 mfc0 $t3, $t4
 bne  $t3, $zero, finish
 j mosi

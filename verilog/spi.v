@@ -80,7 +80,6 @@ module mosi (
 
   always @(posedge clk or negedge rst)
   begin
-    $display("MOSI COUNTER: %d", MOSI_counter);
     //Catches reset case
     if (rst)
     begin
@@ -130,6 +129,11 @@ module mosi (
         //   end
         // end
     end
+  end
+  always @(posedge clk or negedge rst)
+  begin
+  #2
+    $display("MOSI COUNTER: %d", MOSI_counter);
   end
 
 endmodule
