@@ -6,32 +6,30 @@ addi $t1, $zero, 0x00000aaa
 # MOSI S: $t3
 # MOSI DV: $t4
 mtc0 $t1, $t2
-
 li $t2, 1
 mtc0 $t2, $t3
 mosi:
 mfc0 $t3, $t4
-bne  $t3, $zero, finish
+bne  $t3, $zero, miso1
 j mosi
-
 
 
 # MISO TEST
 # MISO:    $t0
 # MISO_DV: $t1
-# miso1:
-#   mfc0 $t2, $t0
-#   mfc0 $t3, $t1
-#   bne  $t3, $zero, miso2
-#   # # addi $t1, $zero, 0x16
-#   j miso1
-#
-# miso2:
-#   mfc0 $t4, $t0
-#   mfc0 $t3, $t1
-#   bne  $t3, $zero, finish
-#   # # addi $t1, $zero, 0x16
-#   j miso2
+miso1:
+  mfc0 $t5, $t0
+  mfc0 $t6, $t1
+  bne  $t6, $zero, miso2
+  # # addi $t1, $zero, 0x16
+  j miso1
+
+miso2:
+  mfc0 $t4, $t0
+  mfc0 $t3, $t1
+  bne  $t3, $zero, finish
+  # # addi $t1, $zero, 0x16
+  j miso2
 
 
 
