@@ -21,35 +21,19 @@ module SPI_REGFILE
     case (ctrl)
       `MT: begin // MTC0
         rf[addr] = wd; // writes data from cpu to spi register
-        data_out = 0;
+        data_out = 0; // no data is written back to CPU
 
-        // MOSI_ready = ~transmit_ready;
+        MOSI_data = rf[`REG_MOSI_S];
         rf[`REG_MOSI_TR] = transmit_ready;
-        if(transmit_ready) begin
-          if(addr == `REG_MOSI) begin
-            MOSI_data = rf[`REG_MOSI];
-            MOSI_ready = 1'b1;
-          end
-          else begin
-            MOSI_ready = 1'b0;
-          end
+
+        if((rf[`REG_MOSI] != rf[`REG_MOSI_S]) && transmit_ready) begin
+          $display("HUH?: %b", (rf[`REG_MOSI] != rf[`REG_MOSI_S]));
+          rf[`REG_MOSI_S] = rf[`REG_MOSI];
+          MOSI_ready = 1'b1;
         end
         else begin
-          MOSI_ready =1'b0;
+          MOSI_ready = 1'b0;
         end
-        // if(transmit_ready) begin
-        //   MOSI_ready = 1'b0;
-        //   rf[`REG_MOSI_TR] = 1'b1;
-        //   if(addr == `REG_MOSI) begin
-        //     // $display("ASDFASDFASDF");
-        //     MOSI_data = rf[`REG_MOSI];
-        //     MOSI_ready = 1'b1;
-        //   end
-        // end
-        // // else begin
-        // //   MOSI_ready = 1'b0;
-        // //   rf[`REG_MOSI_TR] = 1'b0;
-        // // end
       end
 
       `MF: begin // MFC0
@@ -78,6 +62,8 @@ module SPI_REGFILE
     $display("TRANS READY:  %b", transmit_ready);
     $display("MOSI READY:   %b", MOSI_ready);
     $display("MOSI TR:      %h", rf[`REG_MOSI_TR]);
+    $display("REG MOSI:     %b", rf[`REG_MOSI]);
+    $display("REG MOSI S:   %b", rf[`REG_MOSI_S]);
     $display("MOSI OUT:     %b", MOSI_out);
   end
 

@@ -91,28 +91,44 @@ module mosi (
     //Sends current index bit
     else
     begin
-        if(data_transmit_valid)
-        begin
-          MOSI_out <= data_to_transmit[MOSI_counter];
-          MOSI_counter <= MOSI_counter - 1;
-          send_data <= 1'b1;
-          transmit_ready = 1'b0;
-          end
-        if(send_data)
-        begin
-          MOSI_out <= data_to_transmit[MOSI_counter];
-          MOSI_counter <= MOSI_counter - 1;
-          if (MOSI_counter == 1) begin
+      if(data_transmit_valid) begin
+        send_data = 1'b1;
+        transmit_ready = 1'b0;
+      end
 
-            transmit_ready = 1'b1;
-            $display("REFGILE TR: %b", transmit_ready);
-            MOSI_counter <= 5'b11111;
-            send_data <= 1'b0;
-          end
-          else begin
-            transmit_ready <= 1'b0;
-          end
+      if(send_data) begin
+        MOSI_out <= data_to_transmit[MOSI_counter];
+        MOSI_counter <= MOSI_counter - 1;
+
+        if(MOSI_counter == 0) begin
+          $display("DATA SENT");
+          transmit_ready = 1'b1;
+          MOSI_counter = 5'b11111;
+          send_data = 1'b0;
         end
+      end
+        // if(data_transmit_valid)
+        // begin
+        //   MOSI_out <= data_to_transmit[MOSI_counter];
+        //   MOSI_counter <= MOSI_counter - 1;
+        //   send_data <= 1'b1;
+        //   transmit_ready = 1'b0;
+        //   end
+        // if(send_data)
+        // begin
+        //   MOSI_out <= data_to_transmit[MOSI_counter];
+        //   MOSI_counter <= MOSI_counter - 1;
+        //   if (MOSI_counter == 1) begin
+        //
+        //     transmit_ready = 1'b1;
+        //     $display("REFGILE TR: %b", transmit_ready);
+        //     MOSI_counter <= 5'b11111;
+        //     send_data <= 1'b0;
+        //   end
+        //   else begin
+        //     transmit_ready <= 1'b0;
+        //   end
+        // end
     end
   end
 

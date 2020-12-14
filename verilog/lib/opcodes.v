@@ -97,8 +97,9 @@
 
   // SPI Registers
   //MOSI
-  `define REG_MOSI   `W_REG'd10
-  `define REG_MOSI_TR `W_REG'd11
+  `define REG_MOSI    `W_REG'd10
+  `define REG_MOSI_S  `W_REG'd11 
+  `define REG_MOSI_TR `W_REG'd12
 
   //MISO
   `define REG_MISO    `W_REG'd8
