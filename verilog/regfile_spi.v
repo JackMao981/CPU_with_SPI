@@ -23,11 +23,24 @@ module SPI_REGFILE
         rf[addr] = wd; // writes data from cpu to spi register
         data_out = 0; // no data is written back to CPU
 
+        // if(addr == `REG_MOSI) begin // checks to make sure
+        //
+        // end
+        // if(addr == `REG_MOSI_S) begin // ensures reg_mosi store cant be overwritten
+        //
+        // end
+        // else begin
+        //
+        // end
+
         MOSI_data = rf[`REG_MOSI_S];
         rf[`REG_MOSI_TR] = transmit_ready;
 
-        if((rf[`REG_MOSI] != rf[`REG_MOSI_S]) && transmit_ready) begin
-          $display("HUH?: %b", (rf[`REG_MOSI] != rf[`REG_MOSI_S]));
+        if((rf[`REG_MOSI] !== rf[`REG_MOSI_S]) && transmit_ready) begin
+          $display("HUH? WD: %b", wd);
+          $display("HUH? REG MOSI: %b", rf[`REG_MOSI]);
+          $display("HUH? REG MOSI S: %b", rf[`REG_MOSI_S]);
+          $display("HUH?: %b", (rf[`REG_MOSI] !== rf[`REG_MOSI_S]));
           rf[`REG_MOSI_S] = rf[`REG_MOSI];
           MOSI_ready = 1'b1;
         end
