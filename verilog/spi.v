@@ -124,7 +124,7 @@ begin
     end
     else
     begin
-      data_in[MISO_counter] <= MISO_in;
+      data_in[MISO_counter] <= data_to_transmit[MISO_counter];
       MISO_counter <= MISO_counter - 1;
       // $display("counter  = %x",MISO_counter);
       if (MISO_counter == 0) begin
