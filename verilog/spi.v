@@ -76,6 +76,7 @@ module mosi (
 
   //Keeps track of current bit being sent
   reg [W_Counter-1:0] MOSI_counter;
+  reg send_data;
 
   always @(posedge clk or negedge rst)
   begin
@@ -90,26 +91,28 @@ module mosi (
     //Sends current index bit
     else
     begin
-      // if(transmit_ready) // if device is ready to send new data
-      // begin
-      //   MOSI_counter <= 5'b11111;
-      // end
-      // else
-      // begin
-        //if data being passed in is valid
-        $display("DATA_TV: %b", data_transmit_valid);
         if(data_transmit_valid)
         begin
           MOSI_out <= data_to_transmit[MOSI_counter];
           MOSI_counter <= MOSI_counter - 1;
-          if (MOSI_counter == 0) begin
-            transmit_ready <= 1'b1;
+          send_data <= 1'b1;
+          transmit_ready = 1'b0;
+          end
+        if(send_data)
+        begin
+          MOSI_out <= data_to_transmit[MOSI_counter];
+          MOSI_counter <= MOSI_counter - 1;
+          if (MOSI_counter == 1) begin
+
+            transmit_ready = 1'b1;
+            $display("REFGILE TR: %b", transmit_ready);
+            MOSI_counter <= 5'b11111;
+            send_data <= 1'b0;
           end
           else begin
             transmit_ready <= 1'b0;
           end
-        // end
-      end
+        end
     end
   end
 

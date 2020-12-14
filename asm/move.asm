@@ -6,8 +6,8 @@ addi $t1, $zero, 0x16
 # MOSI DV: $t3
 mosi:
 mtc0 $t1, $t2
-mfc0 $t3, $t3
-bne  $t3, $zero, finish
+mfc0 $t4, $t3
+bne  $t4, $zero, finish
 j mosi
 
 

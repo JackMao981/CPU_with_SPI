@@ -23,21 +23,33 @@ module SPI_REGFILE
         rf[addr] = wd; // writes data from cpu to spi register
         data_out = 0;
 
-
-        if((addr == `REG_MOSI) && (transmit_ready)) begin
-          $display("ASDFASDFASDF");
-          MOSI_data = rf[`REG_MOSI];
-          MOSI_ready = 1'b1;
-        end
-
-        if(~transmit_ready) begin
-          MOSI_ready = 1'b1;
-          rf[`REG_MOSI_TR] = 1'b0;
+        // MOSI_ready = ~transmit_ready;
+        rf[`REG_MOSI_TR] = transmit_ready;
+        if(transmit_ready) begin
+          if(addr == `REG_MOSI) begin
+            MOSI_data = rf[`REG_MOSI];
+            MOSI_ready = 1'b1;
+          end
+          else begin
+            MOSI_ready = 1'b0;
+          end
         end
         else begin
-          MOSI_ready = 1'b0;
-          rf[`REG_MOSI_TR] = 1'b1;
+          MOSI_ready =1'b0;
         end
+        // if(transmit_ready) begin
+        //   MOSI_ready = 1'b0;
+        //   rf[`REG_MOSI_TR] = 1'b1;
+        //   if(addr == `REG_MOSI) begin
+        //     // $display("ASDFASDFASDF");
+        //     MOSI_data = rf[`REG_MOSI];
+        //     MOSI_ready = 1'b1;
+        //   end
+        // end
+        // // else begin
+        // //   MOSI_ready = 1'b0;
+        // //   rf[`REG_MOSI_TR] = 1'b0;
+        // // end
       end
 
       `MF: begin // MFC0
@@ -62,6 +74,30 @@ module SPI_REGFILE
     endcase
   end
 
+  always @(posedge clk) begin
+    $display("TRANS READY:  %b", transmit_ready);
+    $display("MOSI READY:   %b", MOSI_ready);
+    $display("MOSI TR:      %h", rf[`REG_MOSI_TR]);
+    $display("MOSI OUT:     %b", MOSI_out);
+  end
+
+  /*---------------
+  ------MOSI-------
+  ---------------*/
+  // the data and its signal  (MOSI)
+  reg reg transmit_ready; // set to 1 when SPI device is ready to send a new byte
+  reg [`W_CPU-1:0] MOSI_data; // 8 bit data being sent from device
+  reg  MOSI_ready; // blipped when new data is loaded and ready
+
+  //SPI in/output
+  wire spi_clk;
+  reg MOSI_out;
+
+  mosi MOSI(rst, clk, transmit_ready,
+            MOSI_data, MOSI_ready,
+            spi_clk, MOSI_out);
+
+
   /*---------------
   ------MISO-------
   ---------------*/
@@ -77,34 +113,12 @@ module SPI_REGFILE
 
   reg MISO_dv; // goes high once data has been fully received
   reg MISO_in; // MISO bits being received from external device
-  wire spi_clk;// data transfer clock
   reg [`W_CPU-1:0] MISO_data; // loaded MISO data
   reg receive_ready; // notes when it's ready to receive more data
 
   miso MISO(rst, clk, receive_ready,
             MISO_data, MISO_dv,
             MISO_in, spi_clk);
-
-
-  /*---------------
-  ------MOSI-------
-  ---------------*/
-  // the data and its signal  (MOSI)
-  reg reg transmit_ready; // set to 1 when SPI device is ready to send a new byte
-  reg [`W_CPU-1:0] MOSI_data; // 8 bit data being sent from device
-  reg  MOSI_ready; // blipped when new data is loaded and ready
-
-  //SPI in/output
-  // wire spi_clk;
-  reg MOSI_out;
-
-  mosi MOSI(rst, clk, transmit_ready,
-            MOSI_data, MOSI_ready,
-            spi_clk, MOSI_out);
-
-  always @(posedge clk) begin
-    $display("MOSI OUT: %b", MOSI_out);
-  end
 
 
 
