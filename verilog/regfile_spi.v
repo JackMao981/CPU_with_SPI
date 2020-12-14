@@ -58,13 +58,17 @@ module SPI_REGFILE
     endcase
   end
 
+  reg [`W_CPU-1:0] MOSI_out_check;
+
   always @(posedge clk) begin
+    MOSI_out_check = {MOSI_out_check[30:0], MOSI_out};
     $display("TRANS READY:  %b", transmit_ready);
     $display("MOSI READY:   %b", MOSI_ready);
     $display("MOSI TR:      %h", rf[`REG_MOSI_TR]);
     $display("REG MOSI:     %b", rf[`REG_MOSI]);
     $display("REG MOSI S:   %b", rf[`REG_MOSI_S]);
     $display("MOSI OUT:     %b", MOSI_out);
+    $display("MOSI OUT C:   %b", MOSI_out_check);
   end
 
   /*---------------
