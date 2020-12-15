@@ -1,4 +1,7 @@
-li $t1, 0xffff
+li $t8, 0xf000
+li $t9, 0x000d
+sll $t8, $t8, 16
+addu $t1, $t8, $t9
 # addi $t1, $zero, 0x0bba
 
 ## MOSI TEST
