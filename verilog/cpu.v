@@ -56,11 +56,16 @@ module SINGLE_CYCLE_CPU
   reg [`W_CPU-1:0] wd;
   REGFILE regfile(clk, rst, reg_wen, wa, wd, ra1, ra2, rd1, rd2);
 
+
+  //SPI
   reg [`W_CPU-1:0] spi_out;
-  // ra1: address to read in spi register
-  // wa:  addres to write to in spi register
-  // rd2: data to send to spi
-  SPI_REGFILE spi_regfile(clk, rst, ra1, rd2, spi_ctrl, spi_out);
+
+  reg MOSI_out;
+  reg MISO_in;
+  reg sclk;
+  reg cs;
+  SPI_REGFILE spi_regfile(clk, rst, ra1, rd2, spi_ctrl, spi_out,
+                          MOSI_out, MISO_in, sclk, cs);
 
   //immediate mux
   reg [`W_CPU-1:0] ALUSrcOut;
@@ -122,6 +127,46 @@ module SINGLE_CYCLE_CPU
         end
     endcase
   end
+
+  // MOSI test
+  always @(posedge clk) begin
+    $display("CS: %b", cs);
+    if(MISO_in == 1'b1) begin
+      MISO_in = 1'b0;
+    end
+    else begin
+      MISO_in = 1'b1;
+    end
+  end
+  
+  // reg send_data;
+  // reg [`W_CPU-1:0] data_to_receive;
+  // reg [4:0] counter;
+  //
+  // always @* begin
+  //   data_to_receive = 111;
+  //
+  //   if((cs) && (spi_ctrl == `MF) && (ra1 == `REG_MISO)) begin
+  //     send_data = 1'b1;
+  //     counter = 5'b11111;
+  //   end
+  //   else if (cs) begin
+  //     MISO_in = data_to_receive[counter];
+  //   end
+  //   else begin
+  //     MISO_in = 1'b0;
+  //   end
+  // end
+  //
+  // always @(posedge sclk) begin
+  //   if(send_data) begin
+  //     counter = counter - 1;
+  //     if(counter == 0) begin
+  //       counter = 5'b11111;
+  //       send_data = 1'b0;
+  //     end
+  //   end
+  // end
 
   //SYSCALL Catch
   always @(posedge clk) begin

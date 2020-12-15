@@ -97,13 +97,14 @@
 
   // SPI Registers
   //MOSI
-  `define REG_MOSI    `W_REG'd10
-  `define REG_MOSI_S  `W_REG'd11 
-  `define REG_MOSI_TR `W_REG'd12
+  `define REG_MOSI    `W_REG'd11
+  `define REG_MOSI_S  `W_REG'd12
+  `define REG_MOSI_TR `W_REG'd13
 
   //MISO
   `define REG_MISO    `W_REG'd8
-  `define REG_MISO_DV `W_REG'd9
+  `define REG_MISO_S  `W_REG'd9
+  `define REG_MISO_DV `W_REG'd10 
 
   // FUNCT Codes
   `define F_ADD     `W_OPCODE'b100000

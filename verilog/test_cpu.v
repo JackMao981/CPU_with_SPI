@@ -66,7 +66,7 @@ module cpu_test ();
     // or use a smarter approach like looking for an exit syscall or the
     // PC to be the value of the last instruction in your program.
     /* verilator lint_off STMTDLY */
-    #1000
+    #10000
     /* verilator lint_on STMTDLY */
     $display("Are you sure you should be running this long?");
     $finish();
