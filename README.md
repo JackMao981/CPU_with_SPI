@@ -5,7 +5,7 @@ For more information about this project as a whole, please see our website.
 2. Run "sudo apt install default-jre" to install java
 3. Run "git clone https://github.com/JackMao981/CPU_with_SPI.git" to clone the repository
 4. Navigate to the "CPU_with_SPI" directory and run "make test_move"
-  - To see more outputs, head to "verilog/lib/opcodes.v" and set values to 1 to have them output additional information. Otherwise, set values to 0 to hide their outputs.
+  - To see more outputs, head to "verilog/lib/debug.v" and set values to 1 to have them output additional information. Otherwise, set values to 0 to hide their outputs.
   - To change data being sent using MOSI, adjust $t1 in lines 1-4 of "asm/move.asm".
   - To change data being received using MISO, adjust "data_to_receive" on line 166 of "verilog/cpu.v".
 ## About the code
