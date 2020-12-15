@@ -56,11 +56,16 @@ module SINGLE_CYCLE_CPU
   reg [`W_CPU-1:0] wd;
   REGFILE regfile(clk, rst, reg_wen, wa, wd, ra1, ra2, rd1, rd2);
 
+
+  //SPI
   reg [`W_CPU-1:0] spi_out;
-  // ra1: address to read in spi register
-  // wa:  addres to write to in spi register
-  // rd2: data to send to spi
-  SPI_REGFILE spi_regfile(clk, rst, ra1, rd2, spi_ctrl, spi_out);
+
+  reg MOSI_out;
+  reg MISO_in;
+  reg sclk;
+  reg cs;
+  SPI_REGFILE spi_regfile(clk, rst, ra1, rd2, spi_ctrl, spi_out,
+                          MOSI_out, MISO_in, sclk, cs);
 
   //immediate mux
   reg [`W_CPU-1:0] ALUSrcOut;
@@ -123,6 +128,76 @@ module SINGLE_CYCLE_CPU
     endcase
   end
 
+  /*----------------------------
+  ------- MOSI TEST CODE -------
+  ----------------------------*/
+  reg [4:0] MOSI_counter;
+  initial MOSI_counter = 5'b11111;
+  reg get_data;
+  initial get_data = 1'b0;
+  reg [`W_CPU-1:0] data_sent;
+  always @(posedge clk) begin
+    if (inst == 32'h408a6000) begin
+      get_data <= 1'b1;
+    end
+  end
+
+  always @(posedge clk) begin
+    if (get_data) begin
+      data_sent[MOSI_counter] <= MOSI_out;
+      MOSI_counter <= MOSI_counter - 1;
+      if (MOSI_counter == 0) begin
+        // data_sent[MOSI_counter] = MOSI_out;
+        // MOSI_counter = MOSI_counter - 1;
+        get_data <= 1'b0;
+        MOSI_counter <= 5'b11111;
+      end
+    end
+  end
+
+
+  /*----------------------------
+  ------- MISO TEST CODE -------
+  ----------------------------*/
+  // simple MOSI test
+  // always @(posedge clk) begin
+  //   $display("CS: %b", cs);
+  //   if(MISO_in == 1'b1) begin
+  //     MISO_in = 1'b0;
+  //   end
+  //   else begin
+  //     MISO_in = 1'b1;
+  //   end
+  // end
+
+  reg [4:0] MISO_counter;
+  initial MISO_counter = 5'b11111;
+  reg send_data;
+  reg [`W_CPU-1:0] data_to_receive;
+  assign data_to_receive = 32'hf000000d;
+
+  always @* begin
+    if (inst == 32'h408a7800) begin
+      send_data <= 1'b1;
+      MISO_counter <= 5'b11111;
+    end
+  end
+
+  always @(posedge clk) begin
+    if (send_data) begin
+      MISO_in <= data_to_receive[MISO_counter];
+      MISO_counter <= MISO_counter - 1;
+      if (MISO_counter == 0) begin
+        send_data <= 1'b0;
+        MISO_counter <= 5'b11111;
+      end
+    end
+    else begin
+      MISO_in <= 1'b0;
+    end
+  end
+
+
   //SYSCALL Catch
   always @(posedge clk) begin
     //Is the instruction a SYSCALL?
@@ -131,6 +206,9 @@ module SINGLE_CYCLE_CPU
         case(rd1)
           1 : $display("SYSCALL  1: a0 = %x",rd2);
           10: begin
+              if(`DEBUG_SPI_OUT) begin
+                $display("MOSI_out: %x", data_sent);
+              end
               $display("SYSCALL 10: Exiting...");
               $finish;
             end
