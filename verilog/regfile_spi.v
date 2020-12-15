@@ -23,8 +23,9 @@ module SPI_REGFILE
   /** Storage Element **/
   reg [`W_CPU-1:0] rf [31:0];
 
-  // main SPI logic
+  // Main SPI logic
   always @* begin
+    // Updates register for spi to check if MOSI is done
     if(transmit_ready) begin
       rf[`REG_MOSI_TR] = 1'b1;
     end
@@ -32,6 +33,7 @@ module SPI_REGFILE
       rf[`REG_MOSI_TR] = 1'b0;
     end
 
+    // Updates register for spi to check if MISO is done
     if(receive_ready) begin
       rf[`REG_MISO_DV] = 1'b1;
     end
@@ -41,29 +43,32 @@ module SPI_REGFILE
 
     case (ctrl)
       `MT: begin // MTC0
-        rf[addr] = wd; // writes data from cpu to spi register
-        data_out = 0; // no data is written back to CPU
+        rf[addr] = wd; // Writes data from cpu to spi register
+        data_out = 0; // No data is written back to CPU
 
+        // Tells MOSI module to begin sending data
         if(rf[`REG_MOSI_S] == 1 && transmit_ready) begin
           MOSI_data = rf[`REG_MOSI];
           rf[`REG_MOSI_S] = 1'b0;
           transmit_start = 1'b1;
         end
+        // Ensures that MOSI module doesn't suddenly restart
         else begin
           transmit_start = 1'b0;
         end
       end
 
       `MF: begin // MFC0
-        // data_out = rf[addr];
         rf[`REG_MISO] = MISO_data;
 
+        // Tells MISO module when to begin receiving data
         if(rf[`REG_T7] == 1) begin
           receive_start = 1'b1;
           rf[`REG_T7] = 1'b0;
           data_out = rf[`REG_MISO];
           #10;
         end
+        // Ensures that MISO module doesn't suddenly restart
         else begin
           data_out = rf[addr];
           receive_start = 1'b0;
@@ -73,16 +78,16 @@ module SPI_REGFILE
     endcase
   end
 
-  reg [`W_CPU-1:0] MOSI_out_check;
-
 
   /*---------------
   ------MOSI-------
   ---------------*/
-  // the data and its signal  (MOSI)
-  reg reg transmit_ready; // set to 1 when SPI device is ready to send a new byte
-  reg [`W_CPU-1:0] MOSI_data; // 8 bit data being sent from device
-  reg  transmit_start; // blipped when new data is loaded and ready
+  // 1 when SPI device is ready to send a message, 0 otherwise
+  reg reg transmit_ready;
+  // Message being sent from the device.
+  reg [`W_CPU-1:0] MOSI_data;
+  // Blipped to begin sending message
+  reg  transmit_start;
 
   //SPI in/output
   reg MOSI_out;
@@ -94,9 +99,12 @@ module SPI_REGFILE
   /*---------------
   ------MISO-------
   ---------------*/
-  reg receive_ready; // notes when it's ready to receive more data
-  reg [`W_CPU-1:0] MISO_data; // loaded MISO data
-  reg receive_start; // goes high once data has been fully received
+  // 1 when SPI device is ready to receive a message, 0 otherwise
+  reg receive_ready;
+  // MISO data received from external device
+  reg [`W_CPU-1:0] MISO_data;
+  // Blipped to begin receiving message
+  reg receive_start;
 
   //SPI in/output
   reg MISO_in; // MISO bits being received from external device
@@ -105,14 +113,13 @@ module SPI_REGFILE
             MISO_data, receive_start,
             MISO_in);
 
-
-  // sets main spi input and outputs
+  // Update later to reflect actual SPI clock speeds
   assign SPI_clk = clk;
   always @* begin
     SPI_out = MOSI_out;
     MISO_in = SPI_in;
 
-    // tells external device that data is being sent or received
+    // Controls chip select to ensure external device is ready to send or receive
     if ((rf[`REG_MISO_DV] == 0) || (rf[`REG_MOSI_TR] == 0)) begin
       SPI_cs = 1'b0;
     end
@@ -122,6 +129,8 @@ module SPI_REGFILE
   end
 
 
+  // Used for debugging
+  reg [`W_CPU-1:0] MOSI_out_check;
 
   always @(posedge clk,posedge rst) begin
     if (rst) begin

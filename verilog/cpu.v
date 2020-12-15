@@ -38,7 +38,7 @@ module SINGLE_CYCLE_CPU
 
   reg [`W_SPI_CTRL-1:0] spi_ctrl;
 
-  // Muxinginput control_rd,input control_rd,
+  // Muxing input control_rd,input control_rd,
   reg [`W_PC_SRC-1:0] pc_src;
   reg [`W_EN-1:0] branch_ctrl;
 
@@ -55,7 +55,6 @@ module SINGLE_CYCLE_CPU
 
   reg [`W_CPU-1:0] wd;
   REGFILE regfile(clk, rst, reg_wen, wa, wd, ra1, ra2, rd1, rd2);
-
 
   //SPI
   reg [`W_CPU-1:0] spi_out;
@@ -131,11 +130,13 @@ module SINGLE_CYCLE_CPU
   /*----------------------------
   ------- MOSI TEST CODE -------
   ----------------------------*/
+  // Listens to what is being sent on MOSI out then stores it
   reg [4:0] MOSI_counter;
   initial MOSI_counter = 5'b11111;
   reg get_data;
   initial get_data = 1'b0;
   reg [`W_CPU-1:0] data_sent;
+
   always @(posedge clk) begin
     if (inst == 32'h408a6000) begin
       get_data <= 1'b1;
@@ -147,8 +148,6 @@ module SINGLE_CYCLE_CPU
       data_sent[MOSI_counter] <= MOSI_out;
       MOSI_counter <= MOSI_counter - 1;
       if (MOSI_counter == 0) begin
-        // data_sent[MOSI_counter] = MOSI_out;
-        // MOSI_counter = MOSI_counter - 1;
         get_data <= 1'b0;
         MOSI_counter <= 5'b11111;
       end
@@ -159,17 +158,7 @@ module SINGLE_CYCLE_CPU
   /*----------------------------
   ------- MISO TEST CODE -------
   ----------------------------*/
-  // simple MOSI test
-  // always @(posedge clk) begin
-  //   $display("CS: %b", cs);
-  //   if(MISO_in == 1'b1) begin
-  //     MISO_in = 1'b0;
-  //   end
-  //   else begin
-  //     MISO_in = 1'b1;
-  //   end
-  // end
-
+  // Sends fake external message when MISO starts
   reg [4:0] MISO_counter;
   initial MISO_counter = 5'b11111;
   reg send_data;
