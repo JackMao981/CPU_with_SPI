@@ -1,5 +1,5 @@
 # Single Cycle CPU with SPI
-For more information about this project as a whole, please see our website.
+For more information about this project as a whole, please see our [write-up](https://github.com/JackMao981/CPU_with_SPI/blob/main/Building_a_SPI_Co-processor.pdf). Long link: https://github.com/JackMao981/CPU_with_SPI/blob/main/Building_a_SPI_Co-processor.pdf. 
 ## Running the code
 1. Head to this link and start a docker container: https://github.com/SSModelGit/DokerFiles/wiki/Class-Specific-Info
 2. Run "sudo apt install default-jre" to install java
