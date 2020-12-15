@@ -128,45 +128,74 @@ module SINGLE_CYCLE_CPU
     endcase
   end
 
-  // MOSI test
+
+  /*----- MOSI TEST CODE -----*/
+  reg [4:0] MOSI_counter;
+  initial MOSI_counter = 5'b11111;
+  reg get_data;
+  initial get_data = 1'b0;
+  reg [`W_CPU-1:0] data_sent;
   always @(posedge clk) begin
-    $display("CS: %b", cs);
-    if(MISO_in == 1'b1) begin
-      MISO_in = 1'b0;
-    end
-    else begin
-      MISO_in = 1'b1;
+    if (inst == 32'h408a6000) begin
+      get_data <= 1'b1;
     end
   end
-  
-  // reg send_data;
-  // reg [`W_CPU-1:0] data_to_receive;
-  // reg [4:0] counter;
-  //
-  // always @* begin
-  //   data_to_receive = 111;
-  //
-  //   if((cs) && (spi_ctrl == `MF) && (ra1 == `REG_MISO)) begin
-  //     send_data = 1'b1;
-  //     counter = 5'b11111;
-  //   end
-  //   else if (cs) begin
-  //     MISO_in = data_to_receive[counter];
-  //   end
-  //   else begin
+
+  always @(posedge clk) begin
+    if (get_data) begin
+      data_sent[MOSI_counter] <= MOSI_out;
+      MOSI_counter <= MOSI_counter - 1;
+      if (MOSI_counter == 0) begin
+        // data_sent[MOSI_counter] = MOSI_out;
+        // MOSI_counter = MOSI_counter - 1;
+        get_data <= 1'b0;
+        MOSI_counter <= 5'b11111;
+      end
+    end
+    $display("ASDFASDF: %b", data_sent);
+  end
+
+
+  /*----- MISO TEST CODE -----*/
+  // simple MOSI test
+  // always @(posedge clk) begin
+  //   $display("CS: %b", cs);
+  //   if(MISO_in == 1'b1) begin
   //     MISO_in = 1'b0;
   //   end
-  // end
-  //
-  // always @(posedge sclk) begin
-  //   if(send_data) begin
-  //     counter = counter - 1;
-  //     if(counter == 0) begin
-  //       counter = 5'b11111;
-  //       send_data = 1'b0;
-  //     end
+  //   else begin
+  //     MISO_in = 1'b1;
   //   end
   // end
+
+  reg [4:0] MISO_counter;
+  initial MISO_counter = 5'b11111;
+  reg send_data;
+  reg [`W_CPU-1:0] data_to_receive;
+  assign data_to_receive = 32'hf000000d;
+
+  always @* begin
+    if (inst == 32'h408a7800) begin
+      send_data <= 1'b1;
+      MISO_counter <= 5'b11111;
+    end
+  end
+
+  always @(posedge clk) begin
+    if (send_data) begin
+      MISO_in <= data_to_receive[MISO_counter];
+      MISO_counter <= MISO_counter - 1;
+      if (MISO_counter == 0) begin
+        // MISO_in = data_to_receive[0];
+        send_data <= 1'b0;
+        MISO_counter <= 5'b11111;
+      end
+    end
+    else begin
+      MISO_in <= 1'b0;
+    end
+  end
+
 
   //SYSCALL Catch
   always @(posedge clk) begin

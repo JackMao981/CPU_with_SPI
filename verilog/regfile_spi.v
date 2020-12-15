@@ -55,22 +55,9 @@ module SPI_REGFILE
       end
 
       `MF: begin // MFC0
-        // Handles if MOSI register is overwritten
-        // if(addr == `REG_MISO) begin
-        //   if(receive_start == 1'b1) begin
-        //     rf[`REG_MISO] = MISO_data;
-        //     data_out = rf[`REG_MISO];
-        //     rf[`REG_MISO_DV] = 1'b1;
-        //   end
-        //   else begin
-        //     rf[`REG_MISO_DV] = 1'b0;
-        //   end
-        // end
-        // Handles general move from case
-        // else begin
-          data_out = rf[addr];
-          rf[`REG_MISO] = MISO_data;
-        // end
+        // data_out = rf[addr];
+        rf[`REG_MISO] = MISO_data;
+
         if(rf[`REG_T7] == 1) begin
           receive_start = 1'b1;
           rf[`REG_T7] = 1'b0;
@@ -87,7 +74,6 @@ module SPI_REGFILE
   end
 
   reg [`W_CPU-1:0] MOSI_out_check;
-
 
 
   /*---------------
@@ -127,11 +113,11 @@ module SPI_REGFILE
     MISO_in = SPI_in;
 
     // tells external device that data is being sent or received
-    if ((rf[`REG_MISO_DV] == 1) || (transmit_ready)) begin
-      SPI_cs = 1'b1;
+    if ((rf[`REG_MISO_DV] == 0) || (rf[`REG_MOSI_TR] == 0)) begin
+      SPI_cs = 1'b0;
     end
     else begin
-      SPI_cs = 1'b0;
+      SPI_cs = 1'b1;
     end
   end
 
@@ -143,11 +129,10 @@ module SPI_REGFILE
         rf[i] = 0;
     end
     else begin
-
+      #2
       if (`DEBUG_REGFILE_SPI) begin
         /* verilator lint_off STMTDLY */
-        MOSI_out_check = {MOSI_out_check[30:0], MOSI_out};
-        #2 // Delay slightly to correct print timing issue
+         // Delay slightly to correct print timing issue
         /* verilator lint_on STMTDLY */
         $display("$0  = %x $at = %x $v0 = %x $v1 = %x",rf[`REG_0], rf[`REG_AT],rf[`REG_V0],rf[`REG_V1]);
         $display("$a0 = %x $a1 = %x $a2 = %x $a3 = %x",rf[`REG_A0],rf[`REG_A1],rf[`REG_A2],rf[`REG_A3]);
@@ -162,7 +147,6 @@ module SPI_REGFILE
 
       if (`DEBUG_MOSI) begin
         MOSI_out_check = {MOSI_out_check[30:0], MOSI_out};
-        #2
         $display("WD: %b", wd);
         $display("TRANS READY:  %b", transmit_ready);
         $display("TRANS START:  %b", transmit_start);
@@ -174,7 +158,6 @@ module SPI_REGFILE
       end
 
       if (`DEBUG_MISO) begin
-        #1
         $display("RECEIVE READY: %b", receive_ready);
         $display("RECEIVE START: %b", receive_start);
         $display("MISO RR:       %b", rf[`REG_MISO_DV]);

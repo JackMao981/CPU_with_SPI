@@ -33,6 +33,8 @@ module miso (
       begin
         receive_data = 1'b1;
         receive_ready = 1'b0;
+        data_in[MISO_counter] = MISO_in; //will be floating at some points
+        MISO_counter <= MISO_counter - 1;
       end
 
       if (receive_data) begin
@@ -94,8 +96,8 @@ module mosi (
       if(data_transmit_valid) begin
         send_data = 1'b1;
         transmit_ready = 1'b0;
-        MOSI_out <= data_to_transmit[MOSI_counter];
-        MOSI_counter <= MOSI_counter - 1;
+        // MOSI_out <= data_to_transmit[MOSI_counter];
+        // MOSI_counter <= MOSI_counter - 1;
 
       end
 
