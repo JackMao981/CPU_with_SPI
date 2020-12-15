@@ -128,8 +128,9 @@ module SINGLE_CYCLE_CPU
     endcase
   end
 
-
-  /*----- MOSI TEST CODE -----*/
+  /*----------------------------
+  ------- MOSI TEST CODE -------
+  ----------------------------*/
   reg [4:0] MOSI_counter;
   initial MOSI_counter = 5'b11111;
   reg get_data;
@@ -152,11 +153,12 @@ module SINGLE_CYCLE_CPU
         MOSI_counter <= 5'b11111;
       end
     end
-    $display("ASDFASDF: %b", data_sent);
   end
 
 
-  /*----- MISO TEST CODE -----*/
+  /*----------------------------
+  ------- MISO TEST CODE -------
+  ----------------------------*/
   // simple MOSI test
   // always @(posedge clk) begin
   //   $display("CS: %b", cs);
@@ -186,7 +188,6 @@ module SINGLE_CYCLE_CPU
       MISO_in <= data_to_receive[MISO_counter];
       MISO_counter <= MISO_counter - 1;
       if (MISO_counter == 0) begin
-        // MISO_in = data_to_receive[0];
         send_data <= 1'b0;
         MISO_counter <= 5'b11111;
       end
@@ -205,6 +206,9 @@ module SINGLE_CYCLE_CPU
         case(rd1)
           1 : $display("SYSCALL  1: a0 = %x",rd2);
           10: begin
+              if(`DEBUG_SPI_OUT) begin
+                $display("MOSI_out: %x", data_sent);
+              end
               $display("SYSCALL 10: Exiting...");
               $finish;
             end

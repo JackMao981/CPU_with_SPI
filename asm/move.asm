@@ -1,4 +1,4 @@
-addi $t1, $zero, 0x00000555
+li $t1, 0xffff
 # addi $t1, $zero, 0x0bba
 
 ## MOSI TEST
